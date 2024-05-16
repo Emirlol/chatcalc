@@ -25,7 +25,7 @@ import java.util.OptionalDouble;
 
 @Mixin(TextFieldWidget.class)
 abstract class TextFieldWidgetMixin extends ClickableWidget {
-    public TextFieldWidgetMixin(int x, int y, int width, int height, Text message) {
+    protected TextFieldWidgetMixin(int x, int y, int width, int height, Text message) {
         super(x, y, width, height, message);
     }
 
@@ -39,8 +39,8 @@ abstract class TextFieldWidgetMixin extends ClickableWidget {
     @Nullable
     private Pair<String, OptionalDouble> evaluationCache;
 
-    @Inject(method = "renderButton", at = @At(value = "INVOKE", shift = At.Shift.AFTER, target = "Ljava/lang/String;isEmpty()Z", ordinal = 1), locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void renderWidget1202(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci, int i, int j, String string, boolean bl, boolean bl2, int k, int l, int m, int n, boolean bl3, int o) {
+    @Inject(method = "renderWidget", at = @At(value = "INVOKE", shift = At.Shift.AFTER, target = "Ljava/lang/String;isEmpty()Z", ordinal = 1), locals = LocalCapture.CAPTURE_FAILSOFT)
+    private void chatcalc$renderWidget(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci, int i, int j, String string, boolean bl, boolean bl2, int k, int l, int m, int n, boolean bl3, int o) {
         displayAbove(context, o, l);
     }
 
@@ -55,14 +55,14 @@ abstract class TextFieldWidgetMixin extends ClickableWidget {
             return;
         }
 
-        if (!Config.displayAbove()) {
+        if (!Config.INSTANCE.displayAbove()) {
             evaluationCache = null;
             return;
         }
 
-        String word = ChatHelper.getSection(getText(), getCursor());
+        String word = ChatHelper.INSTANCE.getSection(getText(), getCursor());
 
-        if (ChatCalc.NUMBER.matcher(word).matches()) {
+        if (ChatCalc.INSTANCE.getNUMBER().matcher(word).matches()) {
             evaluationCache = null;
             return;
         }
@@ -76,12 +76,12 @@ abstract class TextFieldWidgetMixin extends ClickableWidget {
 
                 result = evaluationCache.getSecond().getAsDouble();
             } else {
-                ChatCalc.CONSTANT_TABLE.clear();
-                ChatCalc.FUNCTION_TABLE.clear();
-                result = Config.makeEngine().eval(word, new FunctionParameter[0]);
+                ChatCalc.INSTANCE.getCONSTANT_TABLE().clear();
+                ChatCalc.INSTANCE.getFUNCTION_TABLE().clear();
+                result = Config.INSTANCE.makeEngine().eval(word, new FunctionParameter[0]);
                 evaluationCache = new Pair<>(word, OptionalDouble.of(result));
             }
-            Text text = Text.literal("=" + Config.getDecimalFormat().format(result));
+            Text text = Text.literal("=" + Config.INSTANCE.getDecimalFormat().format(result));
             context.drawTooltip(textRenderer, text, x - 8, y - 4);
         } catch (Throwable ignored) {
             evaluationCache = new Pair<>(word, OptionalDouble.empty());
