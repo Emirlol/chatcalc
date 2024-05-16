@@ -11,52 +11,44 @@ import kotlin.math.max
 import kotlin.math.pow
 
 class NibbleMathEngine : MathEngine {
-    lateinit var bytes: ByteArray
-    var idx: Int = 0
-    lateinit var params: Array<FunctionParameter?>
-    var abs: Boolean = false
+    private lateinit var bytes: ByteArray
+    private var idx: Int = 0
+    private lateinit var params: Array<FunctionParameter?>
+    private var abs: Boolean = false
 
-    override fun eval(input: String, paramaters: Array<FunctionParameter?>): Double {
+    override fun eval(input: String, parameters: Array<FunctionParameter?>): Double {
         bytes = (fixParenthesis(input) + "\u0000").toByteArray(StandardCharsets.US_ASCII) // we shouldn't encounter unicode in our math
         idx = 0
         abs = false
-        params = paramaters
+        params = parameters
         val result = expression()
         require(idx + 1 == bytes.size) { "Evaluation had unexpected remaining characters" }
         return result
     }
 
-    private fun fixParenthesis(input: String?): String {
-        var input = input
+    private fun fixParenthesis(input: String): String {
         var openingMissing = 0
-        for (i in 0 until input!!.length) {
-            val c = input[i]
-            if (c == ')') {
-                openingMissing++
-            } else if (c == '(') {
-                break
-            }
+        for (element in input) {
+            if (element == ')') openingMissing++
+            else if (element == '(') break
         }
 
         var closingMissing = 0
-        for (i in input.length - 1 downTo 0) {
-            val c = input[i]
-            if (c == '(') {
-                closingMissing++
-            } else if (c == ')') {
-                break
-            }
+        for (char in input.reversed()) {
+            if (char == '(') closingMissing++
+            else if (char == ')') break
         }
-        input = "(".repeat(openingMissing) + input + ")".repeat(closingMissing)
+        
+        val fixedInput = "(".repeat(openingMissing) + input + ")".repeat(closingMissing)
 
         var opening = 0
         var closing = 0
-        for (element in input) {
+        for (element in fixedInput) {
             if (element == '(') opening++
             else if (element == ')') closing++
         }
 
-        return "(".repeat(max(0, (closing - opening))) + input + ")".repeat(max(0, opening - closing))
+        return "(".repeat(max(0, (closing - opening))) + fixedInput + ")".repeat(max(0, opening - closing))
     }
 
     private fun bite(bite: Char): Boolean { // pun intended
@@ -105,19 +97,19 @@ class NibbleMathEngine : MathEngine {
             x *= part()
         }
 
-        return java.lang.Double.longBitsToDouble(java.lang.Double.doubleToLongBits(x) xor sign)
+        return Double.fromBits(x.toBits() xor sign)
     }
 
     private fun part(): Double {
         var x: Double
-        run a@{
+        run {
             if (bite('(')) {
                 val absBefore = abs
                 abs = false
                 x = expression()
                 require(bite(')')) { "Expected closing parenthesis" }
                 abs = absBefore
-                return@a
+                return@run
             }
             if (!abs && bite('|')) {
                 val absBefore = abs
@@ -125,14 +117,14 @@ class NibbleMathEngine : MathEngine {
                 x = abs(expression())
                 require(bite('|')) { "Expected closing absolute value character" }
                 abs = absBefore
-                return@a
+                return@run
             }
 
             if (bytes[idx].toInt() in ('0'.code..'9'.code) || bytes[idx] == '.'.code.toByte() || bytes[idx] == ','.code.toByte()) {
                 val start = idx
                 while (bytes[idx].toInt() in ('0'.code..'9'.code) || bytes[idx] == '.'.code.toByte() || bytes[idx] == ','.code.toByte()) idx++
                 x = String(bytes, start, idx - start, StandardCharsets.US_ASCII).replace(",", "").toDouble()
-                return@a
+                return@run
             }
 
             if (bytes[idx].toInt() in ('a'.code..'z'.code) || bytes[idx].toInt() in ('A'.code..'Z'.code)) {
@@ -146,7 +138,7 @@ class NibbleMathEngine : MathEngine {
                         if (str.startsWith(param!!.name)) {
                             idx -= str.length - param.name.length
                             x = param.value
-                            return@a
+                            return@run
                         }
                     }
 
@@ -154,7 +146,7 @@ class NibbleMathEngine : MathEngine {
                         if (str.startsWith(name)) {
                             idx -= str.length - name.length
                             x = value.invoke()
-                            return@a
+                            return@run
                         }
                     }
 
@@ -162,7 +154,7 @@ class NibbleMathEngine : MathEngine {
                         if (str.startsWith(constant.name)) {
                             idx -= str.length - constant.name.length
                             x = constant.get()
-                            return@a
+                            return@run
                         }
                     }
                 }
@@ -199,7 +191,7 @@ class NibbleMathEngine : MathEngine {
                     }
                     abs = absBefore
                     x = sum
-                    return@a
+                    return@run
                 }
 
                 if (str == "prod") {
@@ -234,7 +226,7 @@ class NibbleMathEngine : MathEngine {
                     }
                     abs = absBefore
                     x = prod
-                    return@a
+                    return@run
                 }
 
                 if (str == "log_") {
@@ -247,7 +239,7 @@ class NibbleMathEngine : MathEngine {
                     require(bite(')')) { "Expected closing parenthesis for logarithmic function" }
                     abs = absBefore
                     x = log(base, value)
-                    return@a
+                    return@run
                 }
 
                 val absBefore = abs
@@ -278,7 +270,7 @@ class NibbleMathEngine : MathEngine {
                 }
                 abs = absBefore
                 x = MathematicalFunction(str).apply(*values).pow(exponent)
-                return@a
+                return@run
             }
             throw IllegalArgumentException("Expected a valid character for equation, not '" + bytes[idx].toInt().toChar() + "' (at index " + idx + ")")
         }

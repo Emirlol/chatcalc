@@ -1,49 +1,44 @@
 package ca.rttv.chatcalc
 
-import com.google.common.base.Preconditions
-import com.google.common.collect.ImmutableMap
 import com.google.gson.*
 import com.mojang.datafixers.util.Pair
+import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.io.BufferedReader
 import java.io.File
-import java.io.FileReader
 import java.io.FileWriter
 import java.text.DecimalFormat
-import java.util.stream.Collectors
 
 object Config {
     val JSON: JsonObject = JsonObject()
     private val GSON: Gson = GsonBuilder().setPrettyPrinting().create()
-    private val CONFIG_FILE: File = File(".", "config/chatcalc.json")
-    val FUNCTIONS: MutableMap<Pair<String, Int>, CustomFunction>
-    val CONSTANTS: MutableMap<String, CustomConstant>
-    val LOGGER = LoggerFactory.getLogger("Chatcalc")
-    private val DEFAULTS: ImmutableMap<String, String> = ImmutableMap.builder<String, String>()
-        .put("decimal_format", "#,##0.##")
-        .put("radians", "false")
-        .put("copy_type", "chat_history")
-        .put("display_above", "true")
-        .build()
+    private val CONFIG_FILE: File = FabricLoader.getInstance().configDir.resolve("chatcalc.json").toFile()
+    private val LOGGER: Logger = LoggerFactory.getLogger("Chatcalc")
+    val FUNCTIONS = hashMapOf<Pair<String, Int>, CustomFunction>()
+    val CONSTANTS = hashMapOf<String, CustomConstant>()
+    private val DEFAULTS = mapOf(
+        "decimal_format" to "#,##0.##",
+        "radians" to "false",
+        "copy_type" to "chat_history",
+        "display_above" to "true",
+    )
 
     init {
-        val dir = File(".", "config")
-        if ((dir.exists() && dir.isDirectory || dir.mkdirs()) && !CONFIG_FILE.exists()) {
+        if (!CONFIG_FILE.exists()) {
             runCatching {
                 CONFIG_FILE.createNewFile()
-                val writer = FileWriter(CONFIG_FILE)
-                writer.write("{\n")
-                for ((key, value) in DEFAULTS) {
-                    writer.write(String.format("    \"%s\": \"%s\",%n", key, value))
+                CONFIG_FILE.writer().use {
+                    it.write("{\n")
+                    for ((key, value) in DEFAULTS) {
+                        it.write("    \"$key\": \"$value\",\n")
+                    }
+                    it.write("    \"functions\": []\n")
+                    it.write("}")
                 }
-                writer.write("    \"functions\": []\n")
-                writer.write("}")
-                writer.close()
             }.onFailure { LOGGER.error("[Chatcalc] Failed to write the config JSON!", it) }
         }
-        FUNCTIONS = hashMapOf()
-        CONSTANTS = hashMapOf()
+
         if (CONFIG_FILE.exists() && CONFIG_FILE.isFile && CONFIG_FILE.canRead()) {
             readJson()
         } else {
@@ -84,26 +79,27 @@ object Config {
 
     fun readJson() {
         runCatching {
-            BufferedReader(FileReader(CONFIG_FILE)).use { reader ->
-                val json = runCatching { JsonParser.parseString(reader.lines().collect(Collectors.joining("\n"))).asJsonObject }.getOrElse { JsonObject() }
+            val json = JsonParser.parseString(CONFIG_FILE.readText()).asJsonObject
 
-                DEFAULTS.forEach { (key, defaultValue) -> JSON.add(key, if (json[key].isJsonPrimitive && json[key].asJsonPrimitive.isString) json[key].asJsonPrimitive else JsonPrimitive(defaultValue)) }
-                json["functions"].let {
-                    if (it !is JsonArray) return@let
-                    for (function in it) {
-                        if (function is JsonPrimitive && function.isString) {
-                            val func = CustomFunction.fromString(function.getAsString())
-                            if (func != null) FUNCTIONS[Pair(func.name, func.params.size)] = func
-                        }
+            DEFAULTS.forEach { (key, defaultValue) ->
+                JSON.add(key, if (json[key].isJsonPrimitive && json[key].asJsonPrimitive.isString) json[key].asJsonPrimitive else JsonPrimitive(defaultValue))
+            }
+
+            json["functions"].let {
+                if (it !is JsonArray) return@let
+                for (function in it) {
+                    if (function is JsonPrimitive && function.isString) {
+                        val func = CustomFunction.fromString(function.getAsString())
+                        if (func != null) FUNCTIONS[Pair(func.name, func.params.size)] = func
                     }
                 }
-                json["constants"].let {
-                    if (it !is JsonArray) return@let
-                    for (constant in it) {
-                        if (constant is JsonPrimitive && constant.isString) {
-                            val const = CustomConstant.fromString(constant.getAsString())
-                            if (const != null) CONSTANTS[const.name] = const
-                        }
+            }
+            json["constants"].let {
+                if (it !is JsonArray) return@let
+                for (constant in it) {
+                    if (constant is JsonPrimitive && constant.isString) {
+                        val const = CustomConstant.fromString(constant.getAsString())
+                        if (const != null) CONSTANTS[const.name] = const
                     }
                 }
             }
@@ -122,8 +118,8 @@ object Config {
 
     fun func(name: String, values: DoubleArray): Double {
         val func = FUNCTIONS[Pair(name, values.size)]
-        Preconditions.checkArgument(func != null) { "Tried to call unknown function: $name" }
-        return func!!.get(values)
+        require(func != null) { "Tried to call unknown function: $name" }
+        return func.get(values)
     }
 
     fun saveToClipboard(input: String?) {

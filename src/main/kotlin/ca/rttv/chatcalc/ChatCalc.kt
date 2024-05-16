@@ -89,7 +89,7 @@ object ChatCalc {
                     Config.FUNCTIONS.values.asSequence()
                         .map(CustomFunction::toString)
                         .map { Text.literal(it).styled { style: Style -> style.withClickEvent(ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, it)).withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click to copy to clipboard"))) } }
-                        .reduce { a: MutableText, b: MutableText -> a.append(Text.literal("\n").append(b)) })
+                        .reduce { a, b -> a.append(Text.literal("\n").append(b)) })
                 )
                 return false
             }
