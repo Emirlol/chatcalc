@@ -44,11 +44,6 @@ abstract class TextFieldWidgetMixin extends ClickableWidget {
         displayAbove(context, o, l);
     }
 
-//    @Inject(method = "renderButton", at = @At(value = "INVOKE", shift = At.Shift.AFTER, target = "Ljava/lang/String;isEmpty()Z", ordinal = 1), locals = LocalCapture.CAPTURE_FAILSOFT)
-//    private void renderWidget1201(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci, int i, int j, int k, String string, boolean bl, boolean bl2, int l, int m, int n, boolean bl3, int o) {
-//        displayAbove(context, o, m);
-//    }
-
     @Unique
     private void displayAbove(DrawContext context, int x, int y) {
         if (!(getMessage().getContent() instanceof TranslatableTextContent translatable && translatable.getKey().equals("chat.editBox"))) {
@@ -62,7 +57,7 @@ abstract class TextFieldWidgetMixin extends ClickableWidget {
 
         String word = ChatHelper.INSTANCE.getSection(getText(), getCursor());
 
-        if (ChatCalc.INSTANCE.getNUMBER().matcher(word).matches()) {
+        if (ChatCalc.NUMBER.matches(word)) {
             evaluationCache = null;
             return;
         }
@@ -76,8 +71,8 @@ abstract class TextFieldWidgetMixin extends ClickableWidget {
 
                 result = evaluationCache.getSecond().getAsDouble();
             } else {
-                ChatCalc.INSTANCE.getCONSTANT_TABLE().clear();
-                ChatCalc.INSTANCE.getFUNCTION_TABLE().clear();
+                ChatCalc.CONSTANT_TABLE.clear();
+                ChatCalc.FUNCTION_TABLE.clear();
                 result = Config.INSTANCE.makeEngine().eval(word, new FunctionParameter[0]);
                 evaluationCache = new Pair<>(word, OptionalDouble.of(result));
             }

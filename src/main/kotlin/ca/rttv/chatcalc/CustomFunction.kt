@@ -21,9 +21,8 @@ data class CustomFunction(val name: String, val eval: String, val params: Array<
         return value
     }
 
-    override fun toString(): String {
-        return name + '(' + java.lang.String.join(ChatCalc.SEPARATOR, *params) + ")=" + eval
-    }
+    override fun toString() = name + '(' + params.joinToString(ChatCalc.SEPARATOR) + ")=" + eval
+
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -47,19 +46,14 @@ data class CustomFunction(val name: String, val eval: String, val params: Array<
 
     companion object {
         fun fromString(text: String): CustomFunction? {
-            val equalsIdx = text.indexOf('=')
-            if (equalsIdx == -1) return null
+            val split = text.split('=')
+            if (split.size != 2) return null
 
-            val lhs = text.substring(0, equalsIdx)
-            val rhs = text.substring(equalsIdx + 1)
+            val lhs = split.first().trim()
+            val match = ChatCalc.FUNCTION.matchEntire(lhs) ?: return null
+            val rhs = split.last().trim()
 
-            if (!ChatCalc.FUNCTION.matcher(lhs).matches()) return null
-
-            val functionNameEnd = lhs.indexOf('(')
-            val functionName = lhs.substring(0, functionNameEnd)
-            val paramsEnd = lhs.substring(functionNameEnd).indexOf(')') + functionNameEnd
-            val params = lhs.substring(functionNameEnd + 1, paramsEnd).split(ChatCalc.SEPARATOR.toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            return CustomFunction(functionName, rhs, params)
+            return CustomFunction(match.groupValues[1], rhs, match.groupValues[2].split(ChatCalc.SEPARATOR).toTypedArray())
         }
     }
 }

@@ -6,14 +6,16 @@ import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.widget.TextFieldWidget
 import net.minecraft.text.*
-import java.util.regex.Pattern
 
 object ChatCalc {
+    @JvmField
     val CONSTANT_TABLE: HashSet<String> = HashSet()
+    @JvmField
     val FUNCTION_TABLE: HashSet<Pair<String, Int>> = HashSet()
-    val NUMBER: Pattern = Pattern.compile("[-+]?(\\d,?)*(\\.\\d+)?")
-    val FUNCTION: Pattern = Pattern.compile("[a-zA-Z]+\\(([a-zA-Z]+;)*?([a-zA-Z]+)\\)")
-    val CONSTANT: Pattern = Pattern.compile("[a-zA-Z]+")
+    @JvmField
+    val NUMBER = Regex("[-+]?(\\d,?)*(\\.\\d+)?")
+    val FUNCTION = Regex("(?<name>[a-zA-Z]+)\\((?<params>(?:[a-zA-Z]+;)*?[a-zA-Z]+)\\)")
+    val CONSTANT = Regex("[a-zA-Z]+")
     const val SEPARATOR: String = ";"
     const val SEPARATOR_CHAR: Char = ';'
 
@@ -104,9 +106,7 @@ object ChatCalc {
                 return false
             }
 
-            NUMBER.matcher(text).matches() -> {
-                return false
-            }
+            NUMBER.matches(text) -> return false
 
             else -> {
                 var add = false
@@ -138,5 +138,5 @@ object ChatCalc {
         }
     }
 
-    private fun parseDeclaration(text: String) = CustomFunction.fromString(text).let { if (it != null) Either.left(it) else null } ?: CustomConstant.fromString(text).let { if (it != null) Either.right(it) else null }
+    private fun parseDeclaration(text: String) = CustomFunction.fromString(text)?.let { Either.left(it) } ?: CustomConstant.fromString(text).let { if (it != null) Either.right(it) else null }
 }

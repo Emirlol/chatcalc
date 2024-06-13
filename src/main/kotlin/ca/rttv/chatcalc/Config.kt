@@ -106,9 +106,8 @@ object Config {
         }.onFailure { LOGGER.error("[Chatcalc] Failed to read the config JSON!", it) }
     }
 
-    fun displayAbove(): Boolean {
-        return JSON["display_above"].asString.toBoolean()
-    }
+    fun displayAbove() = JSON["display_above"].asString.toBoolean()
+
 
     fun saveToChatHud(input: String?) {
         if (JSON["copy_type"].asString.equals("chat_history", true)) {
@@ -118,7 +117,7 @@ object Config {
 
     fun func(name: String, values: DoubleArray): Double {
         val func = FUNCTIONS[Pair(name, values.size)]
-        require(func != null) { "Tried to call unknown function: $name" }
+        requireNotNull(func) { "Tried to call unknown function: $name" }
         return func.get(values)
     }
 
@@ -128,7 +127,5 @@ object Config {
         }
     }
 
-    fun makeEngine(): MathEngine {
-        return NibbleMathEngine()
-    }
+    fun makeEngine(): MathEngine = NibbleMathEngine()
 }
