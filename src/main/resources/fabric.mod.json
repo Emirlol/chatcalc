@@ -8,8 +8,12 @@
   "authors": [
     "RTTV"
   ],
+  "contributors": [
+    "Lumiafk"
+  ],
   "contact": {
-    "sources": "https://github.com/RealRTTV/chatcalc"
+    "sources": "https://github.com/Emirlol/chatcalc",
+    "issues": "https://github.com/Emirlol/chatcalc/issues"
   },
 
   "license": "MPL-2.0",
