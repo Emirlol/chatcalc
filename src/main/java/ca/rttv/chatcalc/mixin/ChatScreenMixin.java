@@ -27,7 +27,7 @@ abstract class ChatScreenMixin {
     private void keyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
         CompletableFuture<Suggestions> suggestions = ((ChatInputSuggesterDuck) this.chatInputSuggestor).chatcalc$pendingSuggestions();
         if ((suggestions != null && suggestions.isDone() && !suggestions.isCompletedExceptionally() && suggestions.getNow(null).isEmpty())) {
-            if (keyCode == GLFW.GLFW_KEY_TAB && ChatCalc.tryParse(chatField)) {
+            if (keyCode == GLFW.GLFW_KEY_TAB && ChatCalc.tryParse(chatField.getText(), chatField.getCursor(), string -> chatField.setText(string))) {
                 cir.setReturnValue(true);
             }
         }

@@ -4,8 +4,8 @@ import com.mojang.datafixers.util.Either
 import com.mojang.datafixers.util.Pair
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.widget.TextFieldWidget
 import net.minecraft.text.*
+import java.util.function.Consumer
 
 object ChatCalc {
     @JvmField
@@ -19,19 +19,21 @@ object ChatCalc {
     const val SEPARATOR: String = ";"
     const val SEPARATOR_CHAR: Char = ';'
 
+    /**
+     * @return Whether the text was parsed successfully.
+     *         If it was, the [setMethod] will be called somewhere in the process.
+     */
     @JvmStatic
-    fun tryParse(field: TextFieldWidget): Boolean {
+    fun tryParse(originalText: String, cursor: Int, setMethod: Consumer<String>): Boolean {
         val client = MinecraftClient.getInstance()
-        val originalText = field.text
-        val cursor = field.cursor
         var text = ChatHelper.getSection(originalText, cursor)
 
-        val split = text.split("=".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val split = text.split('=').dropLastWhile { it.isEmpty() }
         if (split.size == 2) {
             if (Config.JSON.has(split[0])) {
                 Config.JSON.addProperty(split[0], split[1])
                 Config.refreshJson()
-                return ChatHelper.replaceSection(field, "")
+                return ChatHelper.replaceSection(originalText, cursor, "", setMethod)
             } else {
                 val either = parseDeclaration(text)
                 if (either != null) {
@@ -40,17 +42,17 @@ object ChatCalc {
                     if (left.isPresent) {
                         Config.FUNCTIONS[Pair(left.get().name, left.get().params.size)] = left.get()
                         Config.refreshJson()
-                        return ChatHelper.replaceSection(field, "")
+                        return ChatHelper.replaceSection(originalText, cursor, "", setMethod)
                     } else if (right.isPresent) {
                         Config.CONSTANTS[right.get().name] = right.get()
                         Config.refreshJson()
-                        return ChatHelper.replaceSection(field, "")
+                        return ChatHelper.replaceSection(originalText, cursor, "", setMethod)
                     }
                 }
             }
         } else if (split.size == 1) {
             if (Config.JSON.has(split[0])) {
-                return ChatHelper.replaceSection(field, Config.JSON[split[0]].asString)
+                return ChatHelper.replaceSection(originalText, cursor, Config.JSON[split[0]].asString, setMethod)
             } else if (split[0].isNotEmpty() && Config.JSON.has(split[0].substring(0, split[0].length - 1)) && split[0].endsWith("?") && client.player != null) {
                 client.player!!.sendMessage(Text.translatable("chatcalc." + split[0].substring(0, split[0].length - 1) + ".description"))
                 return false
@@ -64,12 +66,12 @@ object ChatCalc {
                         if (Config.FUNCTIONS.containsKey(pair)) {
                             Config.FUNCTIONS.remove(pair)
                             Config.refreshJson()
-                            return ChatHelper.replaceSection(field, "")
+                            return ChatHelper.replaceSection(originalText, cursor, "", setMethod)
                         }
                     } else if (right.isPresent && Config.CONSTANTS.containsKey(right.get().name)) {
                         Config.CONSTANTS.remove(right.get().name)
                         Config.refreshJson()
-                        return ChatHelper.replaceSection(field, "")
+                        return ChatHelper.replaceSection(originalText, cursor, "", setMethod)
                     }
                 }
             }
@@ -130,7 +132,7 @@ object ChatCalc {
                     }
                     Config.saveToChatHud(originalText)
                     Config.saveToClipboard(originalText)
-                    return if (add) ChatHelper.addSectionAfterIndex(field, solution) else ChatHelper.replaceSection(field, solution)
+                    return if (add) ChatHelper.addSectionAfterIndex(text, cursor, solution, setMethod) else ChatHelper.replaceSection(text, cursor, solution, setMethod)
                 } catch (t: Throwable) {
                     return false
                 }
