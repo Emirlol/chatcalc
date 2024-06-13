@@ -7,7 +7,8 @@
   "client": [
     "ChatInputSuggesterMixin",
     "ChatScreenMixin",
-    "TextFieldWidgetMixin"
+    "TextFieldWidgetMixin",
+    "AbstractSignEditScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
