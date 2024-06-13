@@ -132,7 +132,7 @@ object ChatCalc {
                     }
                     Config.saveToChatHud(originalText)
                     Config.saveToClipboard(originalText)
-                    return if (add) ChatHelper.addSectionAfterIndex(text, cursor, solution, setMethod) else ChatHelper.replaceSection(text, cursor, solution, setMethod)
+                    return if (add) ChatHelper.addSectionAfterIndex(text, cursor, "=$solution", setMethod) else ChatHelper.replaceSection(text, cursor, solution, setMethod)
                 } catch (t: Throwable) {
                     return false
                 }
