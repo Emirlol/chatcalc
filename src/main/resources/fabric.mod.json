@@ -13,7 +13,8 @@
   ],
   "contact": {
     "sources": "https://github.com/Emirlol/chatcalc",
-    "issues": "https://github.com/Emirlol/chatcalc/issues"
+    "issues": "https://github.com/Emirlol/chatcalc/issues",
+    "homepage": "https://modrinth.com/mod/chat-calc-kt"
   },
 
   "license": "MPL-2.0",
