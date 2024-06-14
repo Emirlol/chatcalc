@@ -27,7 +27,7 @@
   ],
 
   "depends": {
-    "minecraft": "~1.20.5",
+    "minecraft": ">=1.20.5",
     "java": ">=21",
     "fabric-language-kotlin": ">=${fabric_kotlin_version}"
   }
