@@ -2,6 +2,7 @@ plugins {
     id("fabric-loom") version "1.6-SNAPSHOT"
     id("maven-publish")
     kotlin("jvm") version "1.9.24"
+    id("me.modmuss50.mod-publish-plugin") version "0.5.1"
 }
 
 version = project.property("mod_version")!!
@@ -45,4 +46,20 @@ tasks {
 
 kotlin {
     jvmToolchain(21)
+}
+
+publishMods {
+    file = tasks.remapJar.get().archiveFile
+    modLoaders.add("fabric")
+    type = STABLE
+    changelog = "Fixed custom functions parsing allowing malformed functions that broke the config."
+    modrinth {
+        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+        projectId = "o2oFdqXS"
+        minecraftVersionRange {
+            start = "1.20.5"
+            end = "1.21"
+        }
+        requires("fabric-language-kotlin")
+    }
 }
