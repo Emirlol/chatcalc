@@ -52,7 +52,8 @@ publishMods {
     file = tasks.remapJar.get().archiveFile
     modLoaders.add("fabric")
     type = STABLE
-    changelog = "Fixed custom functions parsing allowing malformed functions that broke the config."
+    displayName = "Chat Calc ${version.get()}"
+    changelog = "Fixed custom functions parsing allowing malformed functions that broke the config.\n\nI apologize if this spammed anyone's notifications, I was testing out another way of publishing the mod updates."
     modrinth {
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")
         projectId = "o2oFdqXS"
