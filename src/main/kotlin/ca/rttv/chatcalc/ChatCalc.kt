@@ -14,7 +14,6 @@ object ChatCalc {
     val FUNCTION_TABLE: HashSet<Pair<String, Int>> = HashSet()
     @JvmField
     val NUMBER = Regex("[-+]?(\\d,?)*(\\.\\d+)?")
-    val FUNCTION = Regex("(?<name>[a-zA-Z]+)\\((?<params>(?:[a-zA-Z]+;)*?[a-zA-Z]+)\\)")
     val CONSTANT = Regex("[a-zA-Z]+")
     const val SEPARATOR: String = ";"
     const val SEPARATOR_CHAR: Char = ';'

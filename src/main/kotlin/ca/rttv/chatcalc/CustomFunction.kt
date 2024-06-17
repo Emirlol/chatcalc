@@ -45,13 +45,14 @@ data class CustomFunction(val name: String, val eval: String, val params: Array<
     }
 
     companion object {
+        private val FUNCTION_REGEX = Regex("(?<name>[a-zA-Z]+)\\((?<params>(?:[a-zA-Z]+;)*?[a-zA-Z]+)\\)")
         fun fromString(text: String): CustomFunction? {
             val split = text.split('=')
             if (split.size != 2) return null
 
             val lhs = split.first().trim()
-            val match = ChatCalc.FUNCTION.matchEntire(lhs) ?: return null
-            val rhs = split.last().trim()
+            val match = FUNCTION_REGEX.matchEntire(lhs) ?: return null
+            val rhs = split.last().trim().ifEmpty { return null }
 
             return CustomFunction(match.groupValues[1], rhs, match.groupValues[2].split(ChatCalc.SEPARATOR).toTypedArray())
         }
