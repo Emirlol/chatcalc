@@ -19,10 +19,10 @@ class MathematicalFunction(private val func: String) {
 
 			"sin" to simple { sin(Config.convertToRadians(it)) },
 			"cos" to simple { cos(Config.convertToRadians(it)) },
-			"tan" to simple { tan(Config.convertToRadians(it)) },
+			"tan" to simple { custom_tan(Config.convertToRadians(it)) },
 			"csc" to simple { 1 / sin(Config.convertToRadians(it)) },
 			"sec" to simple { 1 / cos(Config.convertToRadians(it)) },
-			"cot" to simple { 1 / tan(Config.convertToRadians(it)) },
+			"cot" to simple { 1 / custom_tan(Config.convertToRadians(it)) },
 
 			"arcsin" to simple { Config.convertFromRadians(asin(it)) },
 			"asin" to simple { Config.convertFromRadians(asin(it)) },
@@ -103,6 +103,9 @@ class MathematicalFunction(private val func: String) {
 		fun factorial(x: Double) = if ((x % 1.0 == 0.0) and (x >= 1.0)) DoubleMath.factorial(x.toInt())
 		else sqrt(2.0 * Math.PI * x) * (x / Math.E).pow(x) * (((1.0 + 1.0 / (12.0 * x) + 1.0 / (288.0 * x * x)) - 139.0 / (51840.0 * x * x * x) - 571.0 / (2488320.0 * x * x * x * x)) + 163879.0 / (209018880.0 * x * x * x * x * x) + 5246819.0 / (75246796800.0 * x * x * x * x * x * x)
 				- 534703531.0 / (902961561600.0 * x * x * x * x * x * x * x))
+
+		// See https://github.com/Emirlol/chatcalc/issues/3 for details.
+		fun custom_tan(x: Double): Double = if (abs(cos(x)) < 1E-16) Double.POSITIVE_INFINITY else sin(x) / cos(x)
 
 		private fun simple(simple: DoubleUnaryOperator): (DoubleArray) -> Double? = { if (it.size == 1) simple.apply(it[0]) else null }
 	}
