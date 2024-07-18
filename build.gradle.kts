@@ -53,11 +53,12 @@ publishMods {
     modLoaders.add("fabric")
     type = STABLE
     displayName = "Chat Calc ${version.get()}"
-    changelog = "Fixed custom functions parsing allowing malformed functions that broke the config.\n\nI apologize if this spammed anyone's notifications, I was testing out another way of publishing the mod updates."
+    changelog = "Fixed an issue where tan(90°) wouldn't return infinity (by [70CentsApple](https://github.com/Emirlol/chatcalc/pull/4))"
     modrinth {
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")
         projectId = "o2oFdqXS"
         minecraftVersions.addAll("1.20.5", "1.20.6", "1.21")
         requires("fabric-language-kotlin")
+        featured = true
     }
 }
