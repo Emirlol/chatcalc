@@ -4,7 +4,10 @@ import com.mojang.datafixers.util.Either
 import com.mojang.datafixers.util.Pair
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
-import net.minecraft.text.*
+import net.minecraft.text.ClickEvent
+import net.minecraft.text.HoverEvent
+import net.minecraft.text.Style
+import net.minecraft.text.Text
 import java.util.function.Consumer
 
 object ChatCalc {
@@ -88,21 +91,25 @@ object ChatCalc {
             }
 
             text == "functions?" -> {
-                client.player!!.sendMessage(Text.literal("Currently defined custom functions are:").append(
+                client.player!!.sendMessage(
                     Config.FUNCTIONS.values.asSequence()
                         .map(CustomFunction::toString)
                         .map { Text.literal(it).styled { style: Style -> style.withClickEvent(ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, it)).withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click to copy to clipboard"))) } }
-                        .reduce { a, b -> a.append(Text.literal("\n").append(b)) })
+                        .reduceOrNull { a, b -> a.append(Text.literal("\n").append(b)) }
+                        ?.let { Text.literal("Currently defined custom functions are:").append(it) }
+                        ?: Text.literal("There are no custom functions defined.")
                 )
                 return false
             }
 
             text == "constants?" -> {
-                client.player!!.sendMessage(Text.literal("Currently defined custom constants are: \n").append(
+                client.player!!.sendMessage(
                     Config.CONSTANTS.values.asSequence()
                         .map(CustomConstant::toString)
                         .map { Text.literal(it).styled { style: Style -> style.withClickEvent(ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, it)).withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click to copy to clipboard"))) } }
-                        .reduce { a: MutableText, b: MutableText -> a.append(Text.literal("\n").append(b)) })
+                        .reduceOrNull { a, b -> a.append(Text.literal("\n").append(b)) }
+                        ?.let { Text.literal("Currently defined custom constants are: \n").append(it) }
+                        ?: Text.literal("There are no custom constants defined.")
                 )
                 return false
             }
