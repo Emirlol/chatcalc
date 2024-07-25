@@ -1,5 +1,5 @@
 {
-  "chatcalc.decimal_format.description": "The decimal format used by the mod to display numbers; ex: #,##0.## has commas, numbers smaller than 0 have a leading 0 (.3 into 0.3), and stores two decimal places.\nMore information can be found here: https://docs.oracle.com/javase/tutorial/i18n/format/decimalFormat.html\nUsing an invalid format *will* crash the game",
+  "chatcalc.decimal_format.description": "The decimal format used by the mod to display numbers; ex: #,##0.## has commas, numbers smaller than 0 have a leading 0 (.3 into 0.3), and stores two decimal places.\nMore information can be found here: https://docs.oracle.com/javase/tutorial/i18n/format/decimalFormat.html\nUsing an invalid format will make the formatter default to #,##0.##",
   "chatcalc.radians.description": "A toggle to convert numbers from degrees to radians before calculating in trig equations such as sin(), cos(), and tan()",
   "chatcalc.copy_type.description": "An option to either copy to your clipboard (value: clipboard) or add it to your chat history (value: chat_history) (the thing when pressing the up arrow and down arrow), or to not save to anywhere (value: none)",
   "chatcalc.display_above.description": "Displays the calculation above your chat without you needing to press tab to see it",

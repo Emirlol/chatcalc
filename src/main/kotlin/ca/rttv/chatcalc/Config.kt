@@ -47,7 +47,12 @@ object Config {
     }
 
     val decimalFormat: DecimalFormat
-        get() = DecimalFormat(JSON["decimal_format"].asString)
+        get() = try {
+            DecimalFormat(JSON["decimal_format"].asString)
+        } catch (e: Exception) {
+            LOGGER.error("[Chatcalc] Invalid decimal format config! Defaulting back to \"#,##0.##\".", e)
+            DecimalFormat("#,##0.##")
+        }
 
     fun convertFromDegrees(value: Double): Double {
         return if (JSON["radians"].asString.toBoolean()) Math.toRadians(value) else value
