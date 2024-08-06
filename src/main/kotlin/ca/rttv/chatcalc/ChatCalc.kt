@@ -11,8 +11,14 @@ import net.minecraft.text.Text
 import java.util.function.Consumer
 
 object ChatCalc {
+    /**
+     * Table to temporarily store constants and check for the existence of when a constant is called to prevent infinite recursion.
+     */
     @JvmField
     val CONSTANT_TABLE: HashSet<String> = HashSet()
+    /**
+     * Table to temporarily store functions and check for the existence of when a function is called to prevent infinite recursion.
+     */
     @JvmField
     val FUNCTION_TABLE: HashSet<Pair<String, Int>> = HashSet()
     @JvmField
