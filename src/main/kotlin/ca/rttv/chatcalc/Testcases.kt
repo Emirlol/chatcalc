@@ -2,7 +2,6 @@ package ca.rttv.chatcalc
 
 import net.minecraft.client.MinecraftClient
 import net.minecraft.text.Text
-import net.minecraft.text.TextColor
 import net.minecraft.util.Formatting
 import net.minecraft.util.math.MathHelper
 import kotlin.math.abs

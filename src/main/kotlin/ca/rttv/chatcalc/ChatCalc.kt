@@ -9,6 +9,7 @@ import net.minecraft.text.HoverEvent
 import net.minecraft.text.Style
 import net.minecraft.text.Text
 import java.util.function.Consumer
+import kotlin.system.measureNanoTime
 
 object ChatCalc {
     /**
@@ -141,14 +142,16 @@ object ChatCalc {
                     add = true
                 }
                 try {
-                    val start = System.nanoTime()
-                    CONSTANT_TABLE.clear()
-                    FUNCTION_TABLE.clear()
-                    val result = Config.makeEngine().eval(text, arrayOfNulls(0))
-                    val micros = (System.nanoTime() - start) / 1000.0
-                    if (FabricLoader.getInstance().isDevelopmentEnvironment) {
-                        MinecraftClient.getInstance().player!!.sendMessage(Text.literal("Took " + micros + "µs to parse equation"), true)
-                        MinecraftClient.getInstance().player!!.sendMessage(Text.literal("Took " + micros + "µs to parse equation"), false)
+                    val result: Double
+                    measureNanoTime {
+                        CONSTANT_TABLE.clear()
+                        FUNCTION_TABLE.clear()
+                        result = Config.makeEngine().eval(text, arrayOfNulls(0))
+                    }.let {
+                        if (FabricLoader.getInstance().isDevelopmentEnvironment) {
+                            MinecraftClient.getInstance().player!!.sendMessage(Text.literal("Took " + it + "ns to parse equation"), true)
+                            MinecraftClient.getInstance().player!!.sendMessage(Text.literal("Took " + it + "ns to parse equation"), false)
+                        }
                     }
                     var solution = Config.decimalFormat.format(result) // so fast that creating a new one everytime doesn't matter, also lets me use fields
                     if (solution == "-0") {
