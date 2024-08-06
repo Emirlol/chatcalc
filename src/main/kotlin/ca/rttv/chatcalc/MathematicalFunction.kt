@@ -51,8 +51,8 @@ class MathematicalFunction(private val func: String) {
 			"exp" to simple(::exp),
 
 			"sgn" to simple { x -> sign(x).let { if (it.isNaN()) 0.0 else it } },
-			"min" to DoubleArray::min,
-			"max" to DoubleArray::max,
+			"min" to DoubleArray::minOrNull,
+			"max" to DoubleArray::maxOrNull,
 			"gcf" to { it.reduce { a, b -> gcf(a, b) } },
 			"lcm" to { it.reduce { a, b -> lcm(a, b) } },
 			"clamp" to { if (it.size == 3) MathHelper.clamp(it[0], it[1], it[2]) else null },
