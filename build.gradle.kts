@@ -54,9 +54,7 @@ publishMods {
     type = STABLE
     displayName = "Chat Calc ${version.get()}"
     changelog = """
-        - Fixed an issue where an invalid `decimal_format` config would cause the mod to crash.
-        - Fixed an issue where the game would crash when listing custom functions or constants when there are no custom functions or constants.
-        - Removed a misleading line from the output of `config?`.
+        - Fixed not being able to remove custom constants or functions.
     """.trimIndent()
     modrinth {
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")
