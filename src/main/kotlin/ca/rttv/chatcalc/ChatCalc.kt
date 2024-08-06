@@ -42,10 +42,16 @@ object ChatCalc {
                     val left = either.left()
                     val right = either.right()
                     if (left.isPresent) {
+                        if (FabricLoader.getInstance().isDevelopmentEnvironment) {
+                            MinecraftClient.getInstance().player?.sendMessage(Text.literal("Added custom function ${left.get().name} with ${left.get().params.size} parameters"))
+                        }
                         Config.FUNCTIONS[Pair(left.get().name, left.get().params.size)] = left.get()
                         Config.refreshJson()
                         return ChatHelper.replaceSection(originalText, cursor, "", setMethod)
                     } else if (right.isPresent) {
+                        if (FabricLoader.getInstance().isDevelopmentEnvironment) {
+                            MinecraftClient.getInstance().player?.sendMessage(Text.literal("Added custom constant ${left.get().name} with ${left.get().params.size} parameters"))
+                        }
                         Config.CONSTANTS[right.get().name] = right.get()
                         Config.refreshJson()
                         return ChatHelper.replaceSection(originalText, cursor, "", setMethod)
@@ -67,11 +73,17 @@ object ChatCalc {
                         val pair = Pair(left.get().name, left.get().params.size)
                         if (Config.FUNCTIONS.containsKey(pair)) {
                             Config.FUNCTIONS.remove(pair)
+                            if (FabricLoader.getInstance().isDevelopmentEnvironment) {
+                                MinecraftClient.getInstance().player?.sendMessage(Text.literal("Removed custom function ${left.get().name} with ${left.get().params.size} parameters"))
+                            }
                             Config.refreshJson()
                             return ChatHelper.replaceSection(originalText, cursor, "", setMethod)
                         }
                     } else if (right.isPresent && Config.CONSTANTS.containsKey(right.get().name)) {
                         Config.CONSTANTS.remove(right.get().name)
+                        if (FabricLoader.getInstance().isDevelopmentEnvironment) {
+                            MinecraftClient.getInstance().player?.sendMessage(Text.literal("Removed custom constant ${left.get().name} with ${left.get().params} parameters"))
+                        }
                         Config.refreshJson()
                         return ChatHelper.replaceSection(originalText, cursor, "", setMethod)
                     }
