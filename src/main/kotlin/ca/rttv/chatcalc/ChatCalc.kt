@@ -43,7 +43,7 @@ object ChatCalc {
                 Config.refreshJson()
                 return ChatHelper.replaceSection(originalText, cursor, "", setMethod)
             } else {
-                val either = parseDeclaration(text)
+                val either = parseDeclaration(split)
                 if (either != null) {
                     val left = either.left()
                     val right = either.right()
@@ -71,7 +71,7 @@ object ChatCalc {
                 client.player!!.sendMessage(Text.translatable("chatcalc." + split[0].substring(0, split[0].length - 1) + ".description"))
                 return false
             } else {
-                val either = parseDeclaration(text)
+                val either = parseDeclaration(split)
                 if (either != null) {
                     val left = either.left()
                     val right = either.right()
@@ -164,5 +164,5 @@ object ChatCalc {
         }
     }
 
-    private fun parseDeclaration(text: String) = CustomFunction.fromString(text)?.let { Either.left(it) } ?: CustomConstant.fromString(text).let { if (it != null) Either.right(it) else null }
+    private fun parseDeclaration(split: List<String>) = CustomFunction.fromString(split)?.let { Either.left(it) } ?: CustomConstant.fromString(split).let { if (it != null) Either.right(it) else null }
 }

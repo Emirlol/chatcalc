@@ -2,9 +2,12 @@ package ca.rttv.chatcalc
 
 import com.mojang.datafixers.util.Pair
 
-data class CustomFunction(val name: String, val eval: String, val params: Array<String>) {
+//eval is nullable to allow removing the function from the config JSON.
+//It's only null when the constant is being removed.
+data class CustomFunction(val name: String, val eval: String?, val params: Array<String>) {
     fun get(values: DoubleArray): Double {
-        require(values.size == params.size) { "Invalid amount of arguments for custom function" }
+        require(values.size == params.size) { "Invalid number of arguments for custom function" }
+        requireNotNull(eval) { "This function isn't meant to be called!" }
 
         val pair = Pair(name, params.size)
 
@@ -45,15 +48,12 @@ data class CustomFunction(val name: String, val eval: String, val params: Array<
 
     companion object {
         private val FUNCTION_REGEX = Regex("(?<name>[a-zA-Z]+)\\((?<params>(?:[a-zA-Z]+;)*?[a-zA-Z]+)\\)")
-        fun fromString(text: String): CustomFunction? {
-            val split = text.split('=')
-            if (split.size != 2) return null
-
-            val lhs = split.first().trim()
+        fun fromString(text: String) = fromString(text.split('s').dropLastWhile { it.isEmpty() })
+        fun fromString(split: List<String>): CustomFunction? {
+            val lhs = split.firstOrNull()?.trim() ?: return null
             val match = FUNCTION_REGEX.matchEntire(lhs) ?: return null
-            val rhs = split.last().trim().ifEmpty { return null }
 
-            return CustomFunction(match.groupValues[1], rhs, match.groupValues[2].split(ChatCalc.SEPARATOR).toTypedArray())
+            return CustomFunction(match.groupValues[1], split.lastOrNull()?.trim(), match.groupValues[2].split(ChatCalc.SEPARATOR).toTypedArray())
         }
     }
 }
