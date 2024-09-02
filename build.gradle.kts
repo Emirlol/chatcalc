@@ -54,7 +54,8 @@ publishMods {
     type = STABLE
     displayName = "Chat Calc ${version.get()}"
     changelog = """
-        - Fixed not being able to remove custom constants or functions.
+        - Fix for crash with Distant Horizons config screen
+        I didn't actually try it out, but technically it should work.
     """.trimIndent()
     modrinth {
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")

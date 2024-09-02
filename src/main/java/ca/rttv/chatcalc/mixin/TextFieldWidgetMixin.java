@@ -4,8 +4,10 @@ import ca.rttv.chatcalc.ChatCalc;
 import ca.rttv.chatcalc.ChatHelper;
 import ca.rttv.chatcalc.Config;
 import ca.rttv.chatcalc.FunctionParameter;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
@@ -46,6 +48,8 @@ abstract class TextFieldWidgetMixin extends ClickableWidget {
 
     @Unique
     private void displayAbove(DrawContext context, int x, int y) {
+        if (!(MinecraftClient.getInstance().currentScreen instanceof ChatScreen)) return;
+
         if (!(getMessage().getContent() instanceof TranslatableTextContent translatable && translatable.getKey().equals("chat.editBox"))) {
             return;
         }
