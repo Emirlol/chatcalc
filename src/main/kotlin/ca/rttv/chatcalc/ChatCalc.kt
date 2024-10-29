@@ -50,14 +50,14 @@ object ChatCalc {
                     val right = either.right()
                     if (left.isPresent) {
                         if (FabricLoader.getInstance().isDevelopmentEnvironment) {
-                            MinecraftClient.getInstance().player?.sendMessage(Text.literal("Added custom function ${left.get().name} with ${left.get().params.size} parameters"))
+                            player?.sendMessage("Added custom function ${left.get().name} with ${left.get().params.size} parameters")
                         }
                         Config.FUNCTIONS[Pair(left.get().name, left.get().params.size)] = left.get()
                         Config.refreshJson()
                         return ChatHelper.replaceSection(originalText, cursor, "", setMethod)
                     } else if (right.isPresent) {
                         if (FabricLoader.getInstance().isDevelopmentEnvironment) {
-                            MinecraftClient.getInstance().player?.sendMessage(Text.literal("Added custom constant ${left.get().name} with ${left.get().params.size} parameters"))
+                            player?.sendMessage("Added custom constant ${left.get().name} with ${left.get().params.size} parameters")
                         }
                         Config.CONSTANTS[right.get().name] = right.get()
                         Config.refreshJson()
@@ -69,7 +69,7 @@ object ChatCalc {
             if (Config.JSON.has(split[0])) {
                 return ChatHelper.replaceSection(originalText, cursor, Config.JSON[split[0]].asString, setMethod)
             } else if (split[0].isNotEmpty() && Config.JSON.has(split[0].substring(0, split[0].length - 1)) && split[0].endsWith("?") && client.player != null) {
-                client.player!!.sendMessage(Text.translatable("chatcalc." + split[0].substring(0, split[0].length - 1) + ".description"))
+                player?.sendText(Text.translatable("chatcalc." + split[0].substring(0, split[0].length - 1) + ".description"))
                 return false
             } else {
                 val either = parseDeclaration(split)
@@ -81,7 +81,7 @@ object ChatCalc {
                         if (Config.FUNCTIONS.containsKey(pair)) {
                             Config.FUNCTIONS.remove(pair)
                             if (FabricLoader.getInstance().isDevelopmentEnvironment) {
-                                MinecraftClient.getInstance().player?.sendMessage(Text.literal("Removed custom function ${left.get().name} with ${left.get().params.size} parameters"))
+                                player?.sendMessage("Removed custom function ${left.get().name} with ${left.get().params.size} parameters")
                             }
                             Config.refreshJson()
                             return ChatHelper.replaceSection(originalText, cursor, "", setMethod)
@@ -89,7 +89,7 @@ object ChatCalc {
                     } else if (right.isPresent && Config.CONSTANTS.containsKey(right.get().name)) {
                         Config.CONSTANTS.remove(right.get().name)
                         if (FabricLoader.getInstance().isDevelopmentEnvironment) {
-                            MinecraftClient.getInstance().player?.sendMessage(Text.literal("Removed custom constant ${left.get().name} with ${left.get().params} parameters"))
+                            player?.sendMessage("Removed custom constant ${left.get().name} with ${left.get().params} parameters")
                         }
                         Config.refreshJson()
                         return ChatHelper.replaceSection(originalText, cursor, "", setMethod)
@@ -99,8 +99,8 @@ object ChatCalc {
         }
 
         when {
-            (text == "config?" || text == "cfg?" || text == "?") && client.player != null -> {
-                client.player!!.sendMessage(Text.translatable("chatcalc.config.description"))
+            (text == "config?" || text == "cfg?" || text == "?") -> {
+                player?.sendText(Text.translatable("chatcalc.config.description"))
                 return false
             }
 
@@ -110,7 +110,7 @@ object ChatCalc {
             }
 
             text == "functions?" -> {
-                client.player!!.sendMessage(
+                player?.sendText(
                     Config.FUNCTIONS.values.asSequence()
                         .map(CustomFunction::toString)
                         .map { Text.literal(it).styled { style: Style -> style.withClickEvent(ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, it)).withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click to copy to clipboard"))) } }
@@ -122,7 +122,7 @@ object ChatCalc {
             }
 
             text == "constants?" -> {
-                client.player!!.sendMessage(
+                player?.sendText(
                     Config.CONSTANTS.values.asSequence()
                         .map(CustomConstant::toString)
                         .map { Text.literal(it).styled { style: Style -> style.withClickEvent(ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, it)).withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click to copy to clipboard"))) } }
@@ -149,8 +149,8 @@ object ChatCalc {
                         result = Config.makeEngine().eval(text, arrayOfNulls(0))
                     }.let {
                         if (FabricLoader.getInstance().isDevelopmentEnvironment) {
-                            MinecraftClient.getInstance().player!!.sendMessage(Text.literal("Took " + it + "ns to parse equation"), true)
-                            MinecraftClient.getInstance().player!!.sendMessage(Text.literal("Took " + it + "ns to parse equation"), false)
+                            player?.sendMessage("Took " + it + "ns to parse equation", true)
+                            player?.sendMessage("Took " + it + "ns to parse equation", false)
                         }
                     }
                     var solution = Config.decimalFormat.format(result) // so fast that creating a new one everytime doesn't matter, also lets me use fields

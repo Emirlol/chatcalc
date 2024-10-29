@@ -14,12 +14,12 @@ object Testcases {
             try {
                 val result = Config.makeEngine().eval(expression, arrayOfNulls(0))
                 if (abs(expectedResult - result) <= 0.000001) {
-                    client.player?.sendMessage(Text.literal("Test case passed: $expression, got $expectedResult").formatted(Formatting.GREEN))
+                    player?.sendText(Text.literal("Test case passed: $expression, got $expectedResult").formatted(Formatting.GREEN))
                 } else {
-                    client.player?.sendMessage(Text.literal("Test case failed: $expression, expected $expectedResult, got $result").formatted(Formatting.RED))
+                    player?.sendText(Text.literal("Test case failed: $expression, expected $expectedResult, got $result").formatted(Formatting.RED))
                 }
             } catch (e: Exception) {
-                client.player?.sendMessage(Text.literal("Test case failed with exception: $expression, expected $expectedResult, got $e").formatted(Formatting.RED))
+                player?.sendText(Text.literal("Test case failed with exception: $expression, expected $expectedResult, got $e").formatted(Formatting.RED))
             }
         }
     }
