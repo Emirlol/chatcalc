@@ -54,8 +54,7 @@ publishMods {
     type = STABLE
     displayName = "Chat Calc ${version.get()}"
     changelog = """
-        - Fix for crash with Distant Horizons config screen
-        I didn't actually try it out, but technically it should work.
+        - Fix incorrect replacement when multiple expressions are in the same line
     """.trimIndent()
     modrinth {
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")

@@ -6,9 +6,16 @@ object ChatHelper {
     fun getSection(input: String, cursor: Int) = input.substring(getStartOfSection(input, cursor), getEndOfSection(input, cursor))
 
     fun replaceSection(input: String, cursor: Int, replacement: String, setMethod: Consumer<String>): Boolean {
+        player?.debugSend("--- Replacing ---")
+        player?.debugSend("Input: $input")
+        player?.debugSend("Cursor: $cursor")
+        player?.debugSend("Replacement: $replacement")
         val start = getStartOfSection(input, cursor)
+        player?.debugSend("Start: $start")
         val end = getEndOfSection(input, cursor)
+        player?.debugSend("End: $end")
         val output = input.substring(0, start) + replacement + input.substring(end)
+        player?.debugSend("Output: $output")
         if (output.length > 256 || input.substring(start, end) == replacement) {
             return false
         }
