@@ -2,7 +2,6 @@ package ca.rttv.chatcalc
 
 import com.mojang.datafixers.util.Either
 import com.mojang.datafixers.util.Pair
-import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.text.ClickEvent
 import net.minecraft.text.HoverEvent
@@ -147,10 +146,8 @@ object ChatCalc {
 						FUNCTION_TABLE.clear()
 						result = Config.makeEngine().eval(text, arrayOfNulls(0))
 					}.let {
-						if (FabricLoader.getInstance().isDevelopmentEnvironment) {
-							player?.sendMessage("Took " + it + "ns to parse equation", true)
-							player?.sendMessage("Took " + it + "ns to parse equation", false)
-						}
+						player?.debugSend("Took " + it + "ns to parse equation", true)
+						player?.debugSend("Took " + it + "ns to parse equation", false)
 					}
 					var solution = Config.decimalFormat.format(result) // so fast that creating a new one everytime doesn't matter, also lets me use fields
 					if (solution == "-0") {
