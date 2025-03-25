@@ -13,6 +13,7 @@ fun ClientPlayerEntity.sendText(text: Text, overlay: Boolean = false) = sendMess
 
 // And this one is just for convenience
 fun ClientPlayerEntity.sendMessage(text: String, overlay: Boolean = false) = sendMessage(Text.literal(text), overlay)
+
 fun ClientPlayerEntity.debugSend(text: String, overlay: Boolean = false) {
 	if (FabricLoader.getInstance().isDevelopmentEnvironment) {
 		sendMessage(Text.literal(text).withColor(0xcba6f7), overlay)
