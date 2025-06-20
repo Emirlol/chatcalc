@@ -1,34 +1,35 @@
 {
-  "schemaVersion": 1,
-  "id": "chatcalc",
-  "version": "${version}",
+	"schemaVersion": 1,
+	"id": "chatcalc",
+	"version": "${version}",
 
-  "name": "ChatCalc",
-  "description": "A simple mod that turns your chat into a calculator.",
-  "authors": [
-    "RTTV"
-  ],
-  "contributors": [
-    "Rime"
-  ],
-  "contact": {
-    "sources": "https://github.com/Emirlol/chatcalc",
-    "issues": "https://github.com/Emirlol/chatcalc/issues",
-    "homepage": "https://modrinth.com/mod/chat-calc-kt"
-  },
+	"name": "ChatCalc",
+	"description": "A simple mod that turns your chat into a calculator.",
+	"authors": [
+		"RTTV"
+	],
+	"contributors": [
+		"Rime"
+	],
+	"contact": {
+		"sources": "https://github.com/Emirlol/chatcalc",
+		"issues": "https://github.com/Emirlol/chatcalc/issues",
+		"homepage": "https://modrinth.com/mod/chat-calc-kt"
+	},
 
-  "license": "MPL-2.0",
-  "icon": "assets/chatcalc/icon.png",
+	"license": "MPL-2.0",
+	"icon": "assets/chatcalc/icon.png",
 
-  "environment": "client",
-  "entrypoints": {},
-  "mixins": [
-    "chatcalc.mixins.json"
-  ],
+	"environment": "client",
+	"entrypoints": { },
+	"mixins": [
+		"chatcalc.mixins.json"
+	],
 
-  "depends": {
-    "minecraft": ">=1.20.5 <=1.21.5",
-    "java": ">=21",
-    "fabric-language-kotlin": ">=${fabric_kotlin_version}"
-  }
+	"depends": {
+		"java": ">=21",
+		"minecraft": "1.21.6",
+		"fabric-language-kotlin": ">=${fabric_kotlin_version}",
+		"fabric-api": ">=${fabric_api_version}"
+	}
 }

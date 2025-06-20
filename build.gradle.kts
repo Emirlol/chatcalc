@@ -1,66 +1,88 @@
 plugins {
-    id("fabric-loom") version "1.6-SNAPSHOT"
-    id("maven-publish")
-    kotlin("jvm") version "1.9.24"
-    id("me.modmuss50.mod-publish-plugin") version "0.5.1"
+	alias(libs.plugins.loom)
+	alias(libs.plugins.kotlin)
+	alias(libs.plugins.modPublish)
+	`maven-publish`
 }
 
-version = project.property("mod_version")!!
-group = project.property("maven_group")!!
+version = property("mod_version") as String
+group = property("maven_group") as String
+
+repositories {
+	mavenCentral()
+	exclusiveContent {
+		forRepositories(
+			maven("https://ancientri.me/maven/releases") {
+				name = "AncientRime"
+			}
+		)
+		filter {
+			@Suppress("UnstableApiUsage")
+			includeGroupAndSubgroups("me.ancientri")
+		}
+	}
+}
 
 dependencies {
-    minecraft("com.mojang:minecraft:${properties["minecraft_version"]}")
-    mappings("net.fabricmc:yarn:${properties["yarn_mappings"]}:v2")
-    modImplementation("net.fabricmc:fabric-loader:${properties["loader_version"]}")
-    modImplementation("net.fabricmc:fabric-language-kotlin:${properties["fabric_kotlin_version"]}")
+	minecraft(libs.minecraft)
+	mappings(variantOf(libs.yarnMappings) { classifier("v2") })
+	modImplementation(libs.fabricLoader)
+	modImplementation(libs.fabricLanguageKotlin)
+	modImplementation(libs.fabricApi)
+	include(modImplementation(libs.rimelib.get())!!)
 }
 
 publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-        }
-    }
+	publications {
+		create<MavenPublication>("mavenJava") {
+			from(components["java"])
+		}
+	}
 }
 
 tasks {
-    processResources {
-        filteringCharset = "UTF-8"
-        val propertyMap = mapOf(
-            "version" to project.version,
-            "fabric_kotlin_version" to project.properties["fabric_kotlin_version"]
-        )
+	processResources {
+		filteringCharset = "UTF-8"
+		val propertyMap = mapOf(
+			"version" to project.version,
+			"fabric_kotlin_version" to libs.versions.fabricLanguageKotlin.get(),
+			"fabric_api_version" to libs.versions.fabricApi.get()
+		)
 
-        inputs.properties(propertyMap)
-        filesMatching("fabric.mod.json") {
-            expand(propertyMap)
-        }
-    }
+		inputs.properties(propertyMap)
+		filesMatching("fabric.mod.json") {
+			expand(propertyMap)
+		}
+	}
 
-    jar {
-        from("LICENSE") {
-            rename { "${it}_${archiveBaseName}" }
-        }
-    }
+	jar {
+		from("LICENSE") {
+			rename { "${it}_${base.archivesName.get()}" }
+		}
+	}
 }
 
 kotlin {
-    jvmToolchain(21)
+	jvmToolchain(21)
 }
 
 publishMods {
-    file = tasks.remapJar.get().archiveFile
-    modLoaders.add("fabric")
-    type = STABLE
-    displayName = "Chat Calc ${version.get()}"
-    changelog = """
-        - Fix incorrect replacement when multiple expressions are in the same line
+	file = tasks.remapJar.get().archiveFile
+	modLoaders.add("fabric")
+	type = STABLE
+	displayName = "Chat Calc ${project.version}"
+	changelog = """
+        - Added support for 1.21.5
+        
+        This is a metadata change only, no code changes were made.
     """.trimIndent()
-    modrinth {
-        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
-        projectId = "o2oFdqXS"
-        minecraftVersions.addAll("1.20.5", "1.20.6", "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5")
-        requires("fabric-language-kotlin")
-        featured = true
-    }
+	modrinth {
+		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+		projectId = "o2oFdqXS"
+		minecraftVersions.addAll("1.21.6")
+		requires("fabric-language-kotlin")
+		requires("fabric-api")
+		embeds("rimelib")
+		featured = true
+	}
 }

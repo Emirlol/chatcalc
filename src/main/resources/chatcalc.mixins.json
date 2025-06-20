@@ -1,16 +1,16 @@
 {
-  "required": true,
-  "minVersion": "0.8",
-  "package": "ca.rttv.chatcalc.mixin",
-  "compatibilityLevel": "JAVA_21",
-  "mixins": [],
-  "client": [
-    "ChatInputSuggesterMixin",
-    "ChatScreenMixin",
-    "TextFieldWidgetMixin",
-    "AbstractSignEditScreenMixin"
-  ],
-  "injectors": {
-    "defaultRequire": 1
-  }
+	"required": true,
+	"minVersion": "0.8",
+	"package": "ca.rttv.chatcalc.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [ ],
+	"client": [
+		"ChatInputSuggesterMixin",
+		"ChatScreenMixin",
+		"TextFieldWidgetMixin",
+		"AbstractSignEditScreenMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
 }

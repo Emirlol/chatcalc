@@ -1,0 +1,30 @@
+[versions]
+# https://fabricmc.net/develop/
+minecraft = "1.21.6"
+yarnMappings = "1.21.6+build.1"
+fabricLoader = "0.16.14"
+fabricApi = "0.127.0+1.21.6"
+
+fabricLanguageKotlin = "1.13.3+kotlin.2.1.21" # https://github.com/FabricMC/fabric-language-kotlin/releases
+
+kotlin = "2.1.21" # Match this to the one above
+loom = "1.10-SNAPSHOT" # https://github.com/FabricMC/fabric-loom/releases
+modPublish = "0.8.4" # https://github.com/modmuss50/mod-publish-plugin
+rimelib = "1.0.0+1.21.6" # https://modrinth.com/mod/rimelib
+pods4k = "0.7.0" # https://github.com/daniel-rusu/pods4k/releases
+
+[libraries]
+minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
+yarnMappings = { module = "net.fabricmc:yarn", version.ref = "yarnMappings" }
+fabricLoader = { module = "net.fabricmc:fabric-loader", version.ref = "fabricLoader" }
+fabricLanguageKotlin = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "fabricLanguageKotlin" }
+fabricApi = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabricApi" }
+rimelib = { module = "me.ancientri:rimelib", version.ref = "rimelib" }
+pods4k = { module = "com.danrusu.pods4k:pods4k", version.ref = "pods4k" }
+
+[bundles]
+
+[plugins]
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+loom = { id = "fabric-loom", version.ref = "loom" }
+modPublish = { id = "me.modmuss50.mod-publish-plugin", version.ref = "modPublish" }
