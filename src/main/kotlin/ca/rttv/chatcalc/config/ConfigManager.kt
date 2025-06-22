@@ -10,12 +10,10 @@ object ConfigManager : JsonCodecConfigManager<Configv2, Configv2Builder>(
 	Configv2.CODEC,
 	Configv2()
 ) {
-	override var config: Configv2 = loadConfig() ?: default
-		private set
+	override fun builder(config: Configv2) = Configv2Builder(config)
 
-	override fun modifyConfig(builder: Configv2Builder.() -> Unit): Configv2 = config.update(builder)
-
-	override fun setConfig(config: Configv2) {
-		this.config = config
+	override fun setFromBuilder(builder: Configv2Builder): Configv2 {
+		config = builder.build()
+		return config
 	}
 }
