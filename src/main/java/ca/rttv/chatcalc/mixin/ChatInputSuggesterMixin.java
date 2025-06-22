@@ -11,10 +11,12 @@ import java.util.concurrent.CompletableFuture;
 
 @Mixin(ChatInputSuggestor.class)
 abstract class ChatInputSuggesterMixin implements ChatInputSuggesterDuck {
-    @Shadow @Nullable private CompletableFuture<Suggestions> pendingSuggestions;
+	@Shadow
+	@Nullable
+	private CompletableFuture<Suggestions> pendingSuggestions;
 
-    @Override
-    public CompletableFuture<Suggestions> chatcalc$pendingSuggestions() {
-        return this.pendingSuggestions;
-    }
+	@Override
+	public CompletableFuture<Suggestions> chatcalc$pendingSuggestions() {
+		return this.pendingSuggestions;
+	}
 }

@@ -2,8 +2,9 @@ package ca.rttv.chatcalc.mixin;
 
 import ca.rttv.chatcalc.ChatCalc;
 import ca.rttv.chatcalc.ChatHelper;
-import ca.rttv.chatcalc.Config;
 import ca.rttv.chatcalc.FunctionParameter;
+import ca.rttv.chatcalc.MathEngine;
+import ca.rttv.chatcalc.config.ConfigManager;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.datafixers.util.Pair;
@@ -54,8 +55,8 @@ public abstract class AbstractSignEditScreenMixin extends Screen {
 		//Blocks the tab key from selecting buttons on the screen when there was an operation
 		if (keyCode == GLFW.GLFW_KEY_TAB && evaluationCache != null && selectionManager != null
 				&& ChatCalc.tryParse(messages[currentRow], selectionManager.getSelectionEnd() - 1, string -> {
-					messages[currentRow] = string;
-					selectionManager.putCursorAtEnd(); //Otherwise the cursor will be at an invalid location and that will cause crashes due to out of bounds exceptions
+			messages[currentRow] = string;
+			selectionManager.putCursorAtEnd(); //Otherwise the cursor will be at an invalid location and that will cause crashes due to out of bounds exceptions
 		})) return true;
 		return original.call(instance, keyCode, scanCode, modifiers);
 	}
@@ -71,11 +72,10 @@ public abstract class AbstractSignEditScreenMixin extends Screen {
 		String line = messages[currentRow];
 		if (line.isEmpty()) return;
 
-		if (!Config.INSTANCE.displayAbove()) {
+		if (!ConfigManager.INSTANCE.getConfig().getDisplayAbove()) {
 			evaluationCache = null;
 			return;
 		}
-
 
 		String word = ChatHelper.INSTANCE.getSection(line, selectionManager.getSelectionEnd());
 
@@ -95,10 +95,10 @@ public abstract class AbstractSignEditScreenMixin extends Screen {
 			} else {
 				ChatCalc.CONSTANT_TABLE.clear();
 				ChatCalc.FUNCTION_TABLE.clear();
-				result = Config.INSTANCE.makeEngine().eval(word, new FunctionParameter[0]);
+				result = MathEngine.Companion.of().eval(word, new FunctionParameter[0]);
 				evaluationCache = new Pair<>(word, OptionalDouble.of(result));
 			}
-			Text text = Text.literal("=" + Config.INSTANCE.getDecimalFormat().format(result));
+			Text text = Text.literal("=" + ConfigManager.INSTANCE.getConfig().getDecimalFormat().format(result));
 			context.drawTooltip(textRenderer, text, (width - textRenderer.getWidth(text)) / 2 - 11, 71);
 		} catch (Throwable ignored) {
 			evaluationCache = new Pair<>(word, OptionalDouble.empty());

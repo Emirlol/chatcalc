@@ -21,7 +21,14 @@
 	"icon": "assets/chatcalc/icon.png",
 
 	"environment": "client",
-	"entrypoints": { },
+	"entrypoints": {
+		"client": [
+			{
+				"value": "ca.rttv.chatcalc.ChatCalc::init",
+				"adapter": "kotlin"
+			}
+		]
+	},
 	"mixins": [
 		"chatcalc.mixins.json"
 	],

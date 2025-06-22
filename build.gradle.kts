@@ -2,6 +2,7 @@ plugins {
 	alias(libs.plugins.loom)
 	alias(libs.plugins.kotlin)
 	alias(libs.plugins.modPublish)
+	alias(libs.plugins.ksp)
 	`maven-publish`
 }
 
@@ -30,6 +31,9 @@ dependencies {
 	modImplementation(libs.fabricLanguageKotlin)
 	modImplementation(libs.fabricApi)
 	include(modImplementation(libs.rimelib.get())!!)
+	implementation(libs.pods4k)
+	ksp(libs.config.processor)
+	compileOnly(libs.config.annotation)
 }
 
 publishing {
