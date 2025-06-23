@@ -76,9 +76,7 @@ publishMods {
 	type = STABLE
 	displayName = "Chat Calc ${project.version}"
 	changelog = """
-        - Added support for 1.21.5
         
-        This is a metadata change only, no code changes were made.
     """.trimIndent()
 	modrinth {
 		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
