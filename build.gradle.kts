@@ -31,7 +31,7 @@ dependencies {
 	modImplementation(libs.fabricLanguageKotlin)
 	modImplementation(libs.fabricApi)
 	include(modImplementation(libs.rimelib.get())!!)
-	implementation(libs.pods4k)
+	include(implementation(libs.pods4k.get())!!)
 	ksp(libs.config.processor)
 	compileOnly(libs.config.annotation)
 }
@@ -76,7 +76,7 @@ publishMods {
 	type = STABLE
 	displayName = "Chat Calc ${project.version}"
 	changelog = """
-        
+		
     """.trimIndent()
 	modrinth {
 		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
