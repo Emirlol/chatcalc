@@ -17,19 +17,19 @@ import java.util.concurrent.CompletableFuture;
 
 @Mixin(ChatScreen.class)
 abstract class ChatScreenMixin {
-    @Shadow
-    protected TextFieldWidget chatField;
+	@Shadow
+	protected TextFieldWidget chatField;
 
-    @Shadow
-    ChatInputSuggestor chatInputSuggestor;
+	@Shadow
+	ChatInputSuggestor chatInputSuggestor;
 
-    @Inject(at = @At("HEAD"), method = "keyPressed(III)Z", cancellable = true)
-    private void keyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
-        CompletableFuture<Suggestions> suggestions = ((ChatInputSuggesterDuck) this.chatInputSuggestor).chatcalc$pendingSuggestions();
-        if ((suggestions != null && suggestions.isDone() && !suggestions.isCompletedExceptionally() && suggestions.getNow(null).isEmpty())) {
-            if (keyCode == GLFW.GLFW_KEY_TAB && ChatCalc.tryParse(chatField.getText(), chatField.getCursor(), chatField::setText)) {
-                cir.setReturnValue(true);
-            }
-        }
-    }
+	@Inject(at = @At("HEAD"), method = "keyPressed(III)Z", cancellable = true)
+	private void keyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+		CompletableFuture<Suggestions> suggestions = ((ChatInputSuggesterDuck) this.chatInputSuggestor).chatcalc$pendingSuggestions();
+		if ((suggestions != null && suggestions.isDone() && !suggestions.isCompletedExceptionally() && suggestions.getNow(null).isEmpty())) {
+			if (keyCode == GLFW.GLFW_KEY_TAB && ChatCalc.tryParse(chatField.getText(), chatField.getCursor(), chatField::setText)) {
+				cir.setReturnValue(true);
+			}
+		}
+	}
 }

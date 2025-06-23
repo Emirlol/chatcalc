@@ -1,9 +1,9 @@
 package ca.rttv.chatcalc
 
-import ca.rttv.chatcalc.MathematicalFunction.Companion.factorial
-import ca.rttv.chatcalc.MathematicalFunction.Companion.log
-import ca.rttv.chatcalc.MathematicalFunction.Companion.mod
-import com.google.common.collect.Streams
+import ca.rttv.chatcalc.BuiltinFunctions.factorial
+import ca.rttv.chatcalc.BuiltinFunctions.log
+import ca.rttv.chatcalc.BuiltinFunctions.mod
+import ca.rttv.chatcalc.config.ConfigManager.config
 import net.minecraft.util.math.MathHelper
 import java.nio.charset.StandardCharsets
 import kotlin.math.abs
@@ -167,7 +167,7 @@ class NibbleMathEngine : MathEngine {
 				if (bytes[idx] == '_'.code.toByte()) idx++
 				val str = String(bytes, start, idx - start, StandardCharsets.US_ASCII)
 
-				if (Streams.concat(Config.FUNCTIONS.keys.stream().map { it.first }, MathematicalFunction.FUNCTIONS.keys.stream()).noneMatch { str.startsWith(it) }) {
+				if ((config.functions.asSequence().map(CustomFunction::name) + BuiltinFunctions.FUNCTIONS.keys.asSequence()).none(str::startsWith)) {
 					for (param in params) {
 						if (str.startsWith(param!!.name)) {
 							idx -= str.length - param.name.length
@@ -176,15 +176,15 @@ class NibbleMathEngine : MathEngine {
 						}
 					}
 
-					for ((name, value) in MathematicalConstant.CONSTANTS) {
+					for ((name, value) in BuiltinConstants.CONSTANTS) {
 						if (str.startsWith(name)) {
 							idx -= str.length - name.length
-							x = value.invoke()
+							x = value.asDouble
 							return@run
 						}
 					}
 
-					for (constant in Config.CONSTANTS.values) {
+					for (constant in config.constants) {
 						if (str.startsWith(constant.name)) {
 							idx -= str.length - constant.name.length
 							x = constant.get()
@@ -221,7 +221,7 @@ class NibbleMathEngine : MathEngine {
 					System.arraycopy(params, 0, summationParams, 0, params.size)
 					for (i in lowerBound..upperBound) {
 						summationParams[params.size] = FunctionParameter(param, i.toDouble())
-						sum += Config.makeEngine().eval(expression, summationParams)
+						sum += MathEngine.of().eval(expression, summationParams)
 					}
 					abs = absBefore
 					x = sum
@@ -256,7 +256,7 @@ class NibbleMathEngine : MathEngine {
 					System.arraycopy(params, 0, productParams, 0, params.size)
 					for (i in lowerBound..upperBound) {
 						productParams[params.size] = FunctionParameter(param, i.toDouble())
-						prod *= Config.makeEngine().eval(expression, productParams)
+						prod *= MathEngine.of().eval(expression, productParams)
 					}
 					abs = absBefore
 					x = prod
@@ -303,7 +303,7 @@ class NibbleMathEngine : MathEngine {
 					require(bite(';')) { "Expected that a semicolon exists between the parameters" }
 				}
 				abs = absBefore
-				x = MathematicalFunction(str).apply(*values).pow(exponent)
+				x = BuiltinFunctions.apply(str, *values).pow(exponent)
 				return@run
 			}
 			throw IllegalArgumentException("Expected a valid character for equation, not '" + bytes[idx].toInt().toChar() + "' (at index " + idx + ")")
@@ -325,7 +325,5 @@ class NibbleMathEngine : MathEngine {
 		return char in 'a'..'z' || char in '0'..'9' || char == '(' || ((char == '|') && !abs)
 	}
 
-	override fun toString(): String {
-		return String(bytes, idx, bytes.size - idx - 1)
-	}
+	override fun toString(): String = String(bytes, idx, bytes.size - idx - 1)
 }

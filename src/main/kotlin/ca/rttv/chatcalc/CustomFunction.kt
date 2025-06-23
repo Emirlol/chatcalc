@@ -1,59 +1,59 @@
 package ca.rttv.chatcalc
 
+import com.mojang.datafixers.util.Either
 import com.mojang.datafixers.util.Pair
+import com.mojang.serialization.Codec
+import com.mojang.serialization.codecs.RecordCodecBuilder
+import java.util.function.Function
 
 //eval is nullable to allow removing the function from the config JSON.
 //It's only null when the constant is being removed.
-data class CustomFunction(val name: String, val eval: String?, val params: Array<String>) {
-    fun get(values: DoubleArray): Double {
-        require(values.size == params.size) { "Invalid number of arguments for custom function" }
-        requireNotNull(eval) { "This function isn't meant to be called!" }
+data class CustomFunction(val name: String, val eval: String?, val params: List<String>) {
+	fun get(values: DoubleArray): Double {
+		require(values.size == params.size) { "Invalid number of arguments for custom function" }
+		requireNotNull(eval) { "This function isn't meant to be called!" }
 
-        val pair = Pair(name, params.size)
+		val pair = Pair(name, params.size)
 
-        require(!ChatCalc.FUNCTION_TABLE.contains(pair)) { "Tried to call function twice, recursively" }
+		require(!ChatCalc.FUNCTION_TABLE.contains(pair)) { "Tried to call function twice, recursively" }
 
-        val parameters = arrayOfNulls<FunctionParameter>(values.size)
-        for (i in parameters.indices) {
-            parameters[i] = FunctionParameter(params[i], values[i])
-        }
+		val parameters = arrayOfNulls<FunctionParameter>(values.size)
+		for (i in parameters.indices) {
+			parameters[i] = FunctionParameter(params[i], values[i])
+		}
 
-        ChatCalc.FUNCTION_TABLE.add(pair)
-        val value = Config.makeEngine().eval(eval, parameters)
-        ChatCalc.FUNCTION_TABLE.remove(pair)
-        return value
-    }
+		ChatCalc.FUNCTION_TABLE.add(pair)
+		val value = MathEngine.of().eval(eval, parameters)
+		ChatCalc.FUNCTION_TABLE.remove(pair)
+		return value
+	}
 
-    override fun toString() = name + '(' + params.joinToString(ChatCalc.SEPARATOR) + ")=" + eval
+	override fun toString() = name + '(' + params.joinToString(ChatCalc.SEPARATOR) + ")=" + eval
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+	companion object {
+		private val FUNCTION_REGEX = Regex("(?<name>[a-zA-Z]+)\\((?<params>(?:[a-zA-Z]+;)*?[a-zA-Z]+)\\)")
 
-        other as CustomFunction
+		private val CODEC: Codec<CustomFunction> = RecordCodecBuilder.create {
+			it.group(
+				Codec.STRING.fieldOf("name").forGetter(CustomFunction::name),
+				Codec.STRING.fieldOf("eval").forGetter(CustomFunction::eval),
+				Codec.STRING.listOf().fieldOf("params").forGetter(CustomFunction::params)
+			).apply(it, ::CustomFunction)
+		}
 
-        if (name != other.name) return false
-        if (eval != other.eval) return false
-        if (!params.contentEquals(other.params)) return false
+		// Decodes both string and object representations of CustomFunction, while only encoding the object representation.
+		val BACKWARDS_COMPATIBLE_CODEC: Codec<CustomFunction> = Codec.either(Codec.STRING, CODEC).xmap(
+			{ it.map(::fromString, Function.identity()) },
+			{ Either.right(it) } // Kotlin's having some trouble when I change this to lambda reference for some reason, despite being valid.
+		)
 
-        return true
-    }
+		fun fromString(text: String) = fromString(text.split('=').dropLastWhile { it.isEmpty() })
 
-    override fun hashCode(): Int {
-        var result = name.hashCode()
-        result = 31 * result + eval.hashCode()
-        result = 31 * result + params.contentHashCode()
-        return result
-    }
+		fun fromString(split: List<String>): CustomFunction? {
+			val lhs = split.firstOrNull()?.trim() ?: return null
+			val match = FUNCTION_REGEX.matchEntire(lhs) ?: return null
 
-    companion object {
-        private val FUNCTION_REGEX = Regex("(?<name>[a-zA-Z]+)\\((?<params>(?:[a-zA-Z]+;)*?[a-zA-Z]+)\\)")
-        fun fromString(text: String) = fromString(text.split('s').dropLastWhile { it.isEmpty() })
-        fun fromString(split: List<String>): CustomFunction? {
-            val lhs = split.firstOrNull()?.trim() ?: return null
-            val match = FUNCTION_REGEX.matchEntire(lhs) ?: return null
-
-            return CustomFunction(match.groupValues[1], split.lastOrNull()?.trim(), match.groupValues[2].split(ChatCalc.SEPARATOR).toTypedArray())
-        }
-    }
+			return CustomFunction(match.groupValues[1], split.lastOrNull()?.trim(), match.groupValues[2].split(ChatCalc.SEPARATOR))
+		}
+	}
 }
