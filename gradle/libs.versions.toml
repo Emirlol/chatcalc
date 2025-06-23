@@ -12,7 +12,7 @@ loom = "1.10-SNAPSHOT" # https://github.com/FabricMC/fabric-loom/releases
 modPublish = "0.8.4" # https://github.com/modmuss50/mod-publish-plugin
 ksp = "2.1.20-1.0.32" #https://github.com/google/ksp/releases
 
-rimelib = "2.0.0+1.21.6" # https://modrinth.com/mod/rimelib
+rimelib = "2.0.1+1.21.6" # https://modrinth.com/mod/rimelib
 config = "1.0.0"
 pods4k = "0.7.0" # https://github.com/daniel-rusu/pods4k/releases
 

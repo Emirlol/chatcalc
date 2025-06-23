@@ -30,10 +30,13 @@ dependencies {
 	modImplementation(libs.fabricLoader)
 	modImplementation(libs.fabricLanguageKotlin)
 	modImplementation(libs.fabricApi)
+
 	include(modImplementation(libs.rimelib.get())!!)
-	include(implementation(libs.pods4k.get())!!)
+
 	ksp(libs.config.processor)
 	compileOnly(libs.config.annotation)
+
+	api(libs.pods4k) // Rimelib already includes the modules of this, we don't need to include it again
 }
 
 publishing {
