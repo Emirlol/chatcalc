@@ -6,11 +6,11 @@ import ca.rttv.chatcalc.CustomConstant
 import ca.rttv.chatcalc.CustomFunction
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import me.ancientri.symbols.config.Config
+import me.ancientri.symbols.config.ConfigClass
 import net.minecraft.client.MinecraftClient
 import java.text.DecimalFormat
 
-@Config
+@ConfigClass
 data class Configv2(
 	val decimalFormat: DecimalFormat = DecimalFormat("#,##0.##"),
 	val radians: Boolean = true,

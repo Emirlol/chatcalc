@@ -19,7 +19,7 @@ import java.util.function.Consumer
 
 object ChatCalc {
 	fun init() {
-		ConfigManager // Initialize the config manager to load the configuration
+		ConfigManager.init() // Initialize the config manager to load the configuration
 	}
 
 	val loggerFactory = LoggerFactory("ChatCalc")
