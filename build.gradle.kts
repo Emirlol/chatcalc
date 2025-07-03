@@ -84,7 +84,7 @@ publishMods {
 	modrinth {
 		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
 		projectId = "o2oFdqXS"
-		minecraftVersions.addAll("1.21.6")
+		minecraftVersions.addAll("1.21.7")
 		requires("fabric-language-kotlin")
 		requires("fabric-api")
 		embeds("rimelib")

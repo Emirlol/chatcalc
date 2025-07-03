@@ -1,19 +1,22 @@
 package ca.rttv.chatcalc.config
 
-import me.ancientri.rimelib.config.impl.JsonCodecConfigManager
+import ca.rttv.chatcalc.ChatCalc
+import com.mojang.serialization.Codec
+import me.ancientri.rimelib.config.dfu.JsonCodecConfigManager
 import me.ancientri.rimelib.util.FabricLoader
+import org.slf4j.Logger
+import java.nio.file.Path
 
 private const val CONFIG_FILE_NAME = "chatcalc.json"
 
-object ConfigManager : JsonCodecConfigManager<Configv2, Configv2Builder>(
-	FabricLoader.configDir.resolve(CONFIG_FILE_NAME),
-	Configv2.CODEC,
-	Configv2()
-) {
-	override fun builder(config: Configv2) = Configv2Builder(config)
+object ConfigManager : JsonCodecConfigManager<Configv2, Configv2Builder>() {
+	override val logger: Logger = ChatCalc.loggerFactory.createLogger(this)
 
-	override fun setFromBuilder(builder: Configv2Builder): Configv2 {
-		config = builder.build()
-		return config
-	}
+	override val configPath: Path = FabricLoader.configDir.resolve(CONFIG_FILE_NAME)
+
+	override val default: Configv2 get() = Configv2()
+
+	override val codec: Codec<Configv2> = Configv2.CODEC
+
+	override fun builder(config: Configv2) = Configv2Builder(config)
 }
