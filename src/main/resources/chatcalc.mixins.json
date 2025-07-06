@@ -3,6 +3,7 @@
 	"minVersion": "0.8",
 	"package": "ca.rttv.chatcalc.mixin",
 	"compatibilityLevel": "JAVA_21",
+	"plugin": "ca.rttv.chatcalc.MixinConfigPlugin",
 	"mixins": [ ],
 	"client": [
 		"ChatInputSuggesterMixin",
