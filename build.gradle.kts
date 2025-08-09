@@ -8,6 +8,7 @@ plugins {
 
 version = property("mod_version") as String
 group = property("maven_group") as String
+val minecraftVersion = libs.versions.minecraft.get()
 
 repositories {
 	mavenCentral()
@@ -53,7 +54,8 @@ tasks {
 		val propertyMap = mapOf(
 			"version" to project.version,
 			"fabric_kotlin_version" to libs.versions.fabricLanguageKotlin.get(),
-			"fabric_api_version" to libs.versions.fabricApi.get()
+			"fabric_api_version" to libs.versions.fabricApi.get(),
+			"minecraft_version" to minecraftVersion,
 		)
 
 		inputs.properties(propertyMap)
@@ -84,7 +86,7 @@ publishMods {
 	modrinth {
 		accessToken = providers.environmentVariable("MODRINTH_TOKEN")
 		projectId = "o2oFdqXS"
-		minecraftVersions.addAll("1.21.7")
+		minecraftVersions.addAll(minecraftVersion)
 		requires("fabric-language-kotlin")
 		requires("fabric-api")
 		embeds("rimelib")
