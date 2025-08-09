@@ -36,12 +36,12 @@ data class Configv2(
 	companion object {
 		val CODEC: Codec<Configv2> = RecordCodecBuilder.create { instance ->
 			instance.group(
-				Codec.STRING.xmap(::DecimalFormat, DecimalFormat::toPattern).fieldOf("decimal_format").forGetter(Configv2::decimalFormat),
-				Codec.BOOL.fieldOf("radians").forGetter(Configv2::radians),
-				CopyType.CODEC.fieldOf("copy_type").forGetter(Configv2::copyType),
-				Codec.BOOL.fieldOf("display_above").forGetter(Configv2::displayAbove),
-				CustomFunction.BACKWARDS_COMPATIBLE_CODEC.listOf().fieldOf("functions").forGetter(Configv2::functions),
-				CustomConstant.BACKWARDS_COMPATIBLE_CODEC.listOf().fieldOf("constants").forGetter(Configv2::constants)
+				Codec.STRING.xmap(::DecimalFormat, DecimalFormat::toPattern).fieldOf(DECIMAL_FORMAT).forGetter(Configv2::decimalFormat),
+				Codec.BOOL.fieldOf(RADIANS).forGetter(Configv2::radians),
+				CopyType.CODEC.fieldOf(COPY_TYPE).forGetter(Configv2::copyType),
+				Codec.BOOL.fieldOf(DISPLAY_ABOVE).forGetter(Configv2::displayAbove),
+				CustomFunction.BACKWARDS_COMPATIBLE_CODEC.listOf().fieldOf(FUNCTIONS).forGetter(Configv2::functions),
+				CustomConstant.BACKWARDS_COMPATIBLE_CODEC.listOf().fieldOf(CONSTANTS).forGetter(Configv2::constants)
 			).apply(instance, ::Configv2)
 		}
 
