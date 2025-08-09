@@ -36,7 +36,7 @@ object ChatHelper {
 			"End: " colored ColorPalette.TEXT
 			end.toString() colored ColorPalette.ACCENT
 		} //endregion
-		val output = input.substring(0, start) + replacement + input.substring(end)
+		val output = input.take(start) + replacement + input.substring(end)
 		//region debug stuff
 		player?.debugSend {
 			"Output: " colored ColorPalette.TEXT
@@ -52,7 +52,7 @@ object ChatHelper {
 
 	fun addSectionAfterIndex(input: String, cursor: Int, word: String, setMethod: Consumer<String>): Boolean {
 		val index = getEndOfSection(input, cursor)
-		val output = input.substring(0, index) + word + input.substring(index)
+		val output = input.take(index) + word + input.substring(index)
 		if (output.length > 256) {
 			return false
 		}

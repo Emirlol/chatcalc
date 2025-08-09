@@ -144,10 +144,10 @@ object ChatCalc {
 			val configValue = ChatConfigHelper.getConfigValue(lhs)
 			if (configValue != null) {
 				return ChatHelper.replaceSection(originalText, cursor, configValue, setMethod)
-			} else if (ChatConfigHelper.getConfigValue(lhs.substring(0, lhs.length - 1)) != null && lhs.endsWith("?") && client.player != null) {
+			} else if (ChatConfigHelper.getConfigValue(lhs.dropLast(1)) != null && lhs.endsWith("?") && client.player != null) {
 				player?.sendText {
 					+chatPrefix
-					("chatcalc." + lhs.substring(0, lhs.length - 1) + ".description").translatable colored ColorPalette.TEXT
+					("chatcalc." + lhs.dropLast(1) + ".description").translatable colored ColorPalette.TEXT
 				}
 				return false
 			} else if (text.getOrNull(split[0].length) == '=') { // The = check allows only acting if this is a declaration in the form of `expr=` rather than `=expr`
@@ -274,10 +274,10 @@ object ChatCalc {
 			else -> {
 				var add = false
 				if (text.endsWith("=")) {
-					text = text.substring(0, text.length - 1)
+					text = text.dropLast(1)
 					add = true
 				}
-				try {
+				runCatching {
 					CONSTANT_TABLE.clear()
 					FUNCTION_TABLE.clear()
 					val result = MathEngine.of().eval(text, arrayOfNulls(0))
@@ -287,9 +287,7 @@ object ChatCalc {
 					config.saveToClipboard(originalText)
 					return if (add) ChatHelper.addSectionAfterIndex(text, cursor, "=$solution", setMethod)
 					else ChatHelper.replaceSection(originalText, cursor, solution, setMethod)
-				} catch (t: Throwable) {
-					return false
-				}
+				}.onFailure { return false }
 			}
 		}
 	}
