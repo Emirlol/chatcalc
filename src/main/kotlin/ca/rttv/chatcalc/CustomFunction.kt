@@ -1,7 +1,6 @@
 package ca.rttv.chatcalc
 
 import com.mojang.datafixers.util.Either
-import com.mojang.datafixers.util.Pair
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import java.util.function.Function
@@ -13,7 +12,7 @@ data class CustomFunction(val name: String, val eval: String?, val params: List<
 		require(values.size == params.size) { "Invalid number of arguments for custom function" }
 		requireNotNull(eval) { "This function isn't meant to be called!" }
 
-		val pair = Pair(name, params.size)
+		val pair = name to params.size
 
 		require(!ChatCalc.FUNCTION_TABLE.contains(pair)) { "Tried to call function twice, recursively" }
 
