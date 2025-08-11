@@ -3,8 +3,9 @@ package ca.rttv.chatcalc
 import ca.rttv.chatcalc.config.ChatConfigHelper
 import ca.rttv.chatcalc.config.ConfigManager
 import ca.rttv.chatcalc.config.ConfigManager.config
+import ca.rttv.chatcalc.display.ChatScreenDisplay
+import ca.rttv.chatcalc.display.SignScreenDisplay
 import com.mojang.datafixers.util.Either
-import com.mojang.datafixers.util.Pair
 import debugSend
 import me.ancientri.rimelib.util.LoggerFactory
 import me.ancientri.rimelib.util.color.ColorPalette
@@ -15,11 +16,14 @@ import me.ancientri.rimelib.util.text.text
 import me.ancientri.rimelib.util.text.translatable
 import net.minecraft.client.MinecraftClient
 import net.minecraft.screen.ScreenTexts
+import org.lwjgl.glfw.GLFW
 import java.util.function.Consumer
 
 object ChatCalc {
 	fun init() {
 		ConfigManager.init() // Initialize the config manager to load the configuration
+		ChatScreenDisplay.init()
+		SignScreenDisplay.init()
 	}
 
 	val loggerFactory = LoggerFactory("ChatCalc")
@@ -35,6 +39,8 @@ object ChatCalc {
 	 */
 	@JvmField
 	val FUNCTION_TABLE: HashSet<Pair<String, Int>> = HashSet()
+
+	const val COMPLETION_KEY = GLFW.GLFW_KEY_TAB
 
 	@JvmField
 	val NUMBER = Regex("[-+]?(\\d,?)*(\\.\\d+)?")
@@ -277,7 +283,7 @@ object ChatCalc {
 					text = text.dropLast(1)
 					add = true
 				}
-				runCatching {
+				try {
 					CONSTANT_TABLE.clear()
 					FUNCTION_TABLE.clear()
 					val result = MathEngine.of().eval(text, arrayOfNulls(0))
@@ -287,7 +293,9 @@ object ChatCalc {
 					config.saveToClipboard(originalText)
 					return if (add) ChatHelper.addSectionAfterIndex(text, cursor, "=$solution", setMethod)
 					else ChatHelper.replaceSection(originalText, cursor, solution, setMethod)
-				}.onFailure { return false }
+				} catch (_: Exception) {
+					return false
+				}
 			}
 		}
 	}

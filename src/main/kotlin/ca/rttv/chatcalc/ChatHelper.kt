@@ -73,7 +73,7 @@ object ChatHelper {
 	fun getEndOfSection(input: String, cursor: Int): Int {
 		if (cursor == input.length) return cursor
 		for (i in cursor until input.length) {
-			if (input[i] == ' ') {
+			if (input[i].isWhitespace()) {
 				return i
 			}
 		}
