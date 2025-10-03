@@ -34,8 +34,8 @@ class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInput
 				if (screen !is ChatScreen) return@register
 				screen as ChatScreenAccessor
 				instance = ChatScreenDisplay(screen.chatField, screen.chatInputSuggestor as ChatInputSuggesterAccessor)
-				ScreenKeyboardEvents.allowKeyPress(screen).register { _, keycode, _, _ ->
-					instance!!.allowKeyPress(keycode)
+				ScreenKeyboardEvents.allowKeyPress(screen).register { _, keyInput, ->
+					instance!!.allowKeyPress(keyInput.keycode)
 				}
 			}
 		}
