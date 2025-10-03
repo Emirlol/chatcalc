@@ -17,7 +17,7 @@ object BuiltinConstants {
 		"tau" to DoubleSupplier { 2.0 * Math.PI },
 		"e" to DoubleSupplier { Math.E },
 		"phi" to DoubleSupplier { 1.6180339887498948482 },
-		"x" to DoubleSupplier { player!!.entityPos .x },
+		"x" to DoubleSupplier { player!!.entityPos.x },
 		"y" to DoubleSupplier { player!!.entityPos.y },
 		"z" to DoubleSupplier { player!!.entityPos.z },
 	)
