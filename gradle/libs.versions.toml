@@ -1,18 +1,18 @@
 [versions]
 # https://fabricmc.net/develop/
-minecraft = "1.21.8"
-yarnMappings = "1.21.8+build.1"
+minecraft = "1.21.9"
+yarnMappings = "1.21.9+build.1"
 fabricLoader = "0.17.2"
-fabricApi = "0.131.0+1.21.8"
+fabricApi = "0.134.0+1.21.9"
 
-fabricLanguageKotlin = "1.13.4+kotlin.2.2.0" # https://github.com/FabricMC/fabric-language-kotlin/releases
+fabricLanguageKotlin = "1.13.6+kotlin.2.2.20" # https://github.com/FabricMC/fabric-language-kotlin/releases
 
-kotlin = "2.2.0" # Match this to the one above
+kotlin = "2.2.20" # Match this to the one above
 loom = "1.11-SNAPSHOT" # https://github.com/FabricMC/fabric-loom/releases
-modPublish = "0.8.4" # https://github.com/modmuss50/mod-publish-plugin
-ksp = "2.2.0-2.0.2" #https://github.com/google/ksp/releases
+modPublish = "1.0.0" # https://github.com/modmuss50/mod-publish-plugin
+ksp = "2.2.20-2.0.3" #https://github.com/google/ksp/releases
 
-rimelib = "2.3.0+1.21.8" # https://modrinth.com/mod/rimelib
+rimelib = "2.3.2+1.21.9" # https://modrinth.com/mod/rimelib
 config = "1.0.2"
 pods4k = "0.7.0" # https://github.com/daniel-rusu/pods4k/releases
 
