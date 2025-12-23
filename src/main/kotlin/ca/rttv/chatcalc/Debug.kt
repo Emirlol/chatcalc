@@ -1,3 +1,5 @@
+package ca.rttv.chatcalc
+
 import ca.rttv.chatcalc.ChatCalc.chatPrefix
 import me.ancientri.rimelib.util.FabricLoader
 import me.ancientri.rimelib.util.text.TextBuilder

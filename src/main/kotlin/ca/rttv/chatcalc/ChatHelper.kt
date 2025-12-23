@@ -1,82 +1,103 @@
 package ca.rttv.chatcalc
 
-import debugSend
-import me.ancientri.rimelib.util.color.ColorPalette
-import me.ancientri.rimelib.util.player
-import me.ancientri.rimelib.util.text.text
+import ca.rttv.chatcalc.ChatHelper.getSpaceDelimitedSection
 import java.util.function.Consumer
 
+/**
+ * Represents a section of text in a chat message.
+ * @property range The range of indices in the message that make up this section.
+ * @property input The entire message.
+ * @property text The text of this section.
+ */
+data class Section(val range: IntRange, val input: String) {
+	val text: String = input.substring(range)
+}
+
 object ChatHelper {
-	fun getSection(input: String, cursor: Int) = input.substring(getStartOfSection(input, cursor), getEndOfSection(input, cursor))
+	/**
+	 * Tries to find a `{ }` pair around the given index.
+	 * If there are no pairs, falls back to [getSpaceDelimitedSection].
+	 */
+	fun getSection(input: String, cursor: Int): Section {
+		// Edge-cases
+		if (cursor == 0) { // Well, this branch isn't quite helpful due to minecraft's suggestion provider trying to fill in whe the cursor is at 0, but it's here for completeness.
+			val rightIndex = input.indexOf('}', cursor)
+			if (rightIndex != -1) return Section(getTrimmedRange(input, 0, rightIndex), input)
+		} else if (cursor == input.length) {
+			val leftIndex = input.lastIndexOf('{', cursor - 1)
+			if (leftIndex != -1) return Section(getTrimmedRange(input, (leftIndex + 1), input.length), input)
+		}
 
-	fun replaceSection(input: String, cursor: Int, replacement: String, setMethod: Consumer<String>): Boolean {
-		//region debug stuff
-		player?.debugSend("--- Replacing ---".text(ColorPalette.ACCENT))
-		player?.debugSend {
-			"Input: " colored ColorPalette.TEXT
-			input colored ColorPalette.ACCENT
-		}
-		player?.debugSend {
-			"Cursor: " colored ColorPalette.TEXT
-			cursor.toString() colored ColorPalette.ACCENT
-		}
-		player?.debugSend {
-			"Replacement: " colored ColorPalette.TEXT
-			replacement colored ColorPalette.ACCENT
-		} //endregion
+		var start = -1
+		var end = -1
+		var searchLeft = cursor
+		var searchRight = cursor
+
+		do {
+			val leftIndex = input.lastIndexOf('{', searchLeft - 1)
+			if (leftIndex == -1) break // Can't be a pair if there's no left brace
+			val rightIndex = input.indexOf('}', searchRight)
+			if (rightIndex == -1) break
+			start = leftIndex + 1
+			end = rightIndex
+			searchLeft = leftIndex
+			searchRight = rightIndex + 1
+		} while (true)
+
+		return if (start == -1) getSpaceDelimitedSection(input, cursor) // No braces found, fall back to whitespace method
+		else Section(getTrimmedRange(input, start, end), input) // Braces found, return the section within
+	}
+
+	fun getSpaceDelimitedSection(input: String, cursor: Int): Section {
 		val start = getStartOfSection(input, cursor)
-		//region debug stuff
-		player?.debugSend {
-			"Start: " colored ColorPalette.TEXT
-			start.toString() colored ColorPalette.ACCENT
-		} //endregion
 		val end = getEndOfSection(input, cursor)
-		//region debug stuff
-		player?.debugSend {
-			"End: " colored ColorPalette.TEXT
-			end.toString() colored ColorPalette.ACCENT
-		} //endregion
-		val output = input.take(start) + replacement + input.substring(end)
-		//region debug stuff
-		player?.debugSend {
-			"Output: " colored ColorPalette.TEXT
-			output colored ColorPalette.ACCENT
-		}
-		//endregion
-		if (output.length > 256 || input.substring(start, end) == replacement) {
-			return false
-		}
+		return Section(start until end, input)
+	}
+
+	fun replaceSection(section: Section, replacement: String, setMethod: Consumer<String>): Boolean {
+		val output = section.input.take(section.range.first) + replacement + section.input.substring(section.range.last + 1)
+		if (output.length > 256 || section.input == replacement) return false
 		setMethod.accept(output)
 		return true
 	}
 
-	fun addSectionAfterIndex(input: String, cursor: Int, word: String, setMethod: Consumer<String>): Boolean {
-		val index = getEndOfSection(input, cursor)
-		val output = input.take(index) + word + input.substring(index)
-		if (output.length > 256) {
-			return false
-		}
+	fun appendAfterSection(section: Section, word: String, setMethod: Consumer<String>): Boolean {
+		val output = section.input.take(section.range.last + 1) + word + section.input.substring(section.range.last + 1)
+		if (output.length > 256) return false
 		setMethod.accept(output)
 		return true
 	}
 
+	/**
+	 * @return The index + 1 of the first whitespace character before the given index, or 0 if there are no more whitespaces.
+	 */
 	fun getStartOfSection(input: String, cursor: Int): Int {
-		if (cursor == 0 || input[cursor - 1] == ' ') return cursor
-		for (i in cursor - 1 downTo 1) {
-			if (input[i - 1] == ' ') {
-				return i
-			}
-		}
-		return 0
+		if (cursor == 0) return 0
+		return input.lastIndexOf(' ', cursor - 1) + 1 // This also handles the -1 return value by making it 0.
 	}
 
+	/**
+	 * @return The index of the first whitespace character after the given index, or the end of the string if there are no more whitespaces.
+	 */
 	fun getEndOfSection(input: String, cursor: Int): Int {
-		if (cursor == input.length) return cursor
-		for (i in cursor until input.length) {
-			if (input[i].isWhitespace()) {
-				return i
-			}
+		if (cursor == input.length) return input.length
+		val index = input.indexOf(' ', cursor)
+		return if (index == -1) input.length else index
+	}
+
+	/**
+	 * Trims whitespace from the given range within the input string.
+	 * @return A new [IntRange] with whitespace trimmed from both ends.
+	 */
+	private fun getTrimmedRange(input: String, start: Int, end: Int): IntRange {
+		var newStart = start
+		var newEnd = end
+		while (newStart < newEnd && input[newStart].isWhitespace()) {
+			newStart++
 		}
-		return input.length
+		while (newEnd > newStart && input[newEnd - 1].isWhitespace()) {
+			newEnd--
+		}
+		return newStart..<newEnd
 	}
 }

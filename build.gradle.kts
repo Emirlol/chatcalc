@@ -1,3 +1,5 @@
+import com.google.devtools.ksp.gradle.KspAATask
+
 plugins {
 	alias(libs.plugins.loom)
 	alias(libs.plugins.kotlin)
@@ -8,7 +10,7 @@ plugins {
 
 version = property("mod_version") as String
 group = property("maven_group") as String
-val minecraftVersion = libs.versions.minecraft.get()
+val minecraftVersion = libs.versions.minecraft.get() as String
 
 repositories {
 	mavenCentral()
@@ -38,6 +40,8 @@ dependencies {
 	compileOnly(libs.config.annotation)
 
 	api(libs.pods4k) // Rimelib already includes the modules of this, we don't need to include it again
+
+	libs.bundles.test.get().forEach(::testImplementation)
 }
 
 publishing {
@@ -52,7 +56,7 @@ tasks {
 	processResources {
 		filteringCharset = "UTF-8"
 		val propertyMap = mapOf(
-			"version" to project.version,
+			"version" to project.version as String,
 			"fabric_kotlin_version" to libs.versions.fabricLanguageKotlin.get(),
 			"fabric_api_version" to libs.versions.fabricApi.get(),
 			"minecraft_version" to minecraftVersion,
@@ -69,10 +73,28 @@ tasks {
 			rename { "${it}_${base.archivesName.get()}" }
 		}
 	}
+
+
+	withType<KspAATask> {
+		outputs.upToDateWhen { false }
+	}
+
+
+	withType<Test> {
+		useJUnitPlatform()
+	}
+}
+
+ksp {
+	arg("ksp.incremental", "false")
 }
 
 kotlin {
 	jvmToolchain(21)
+	compilerOptions {
+		freeCompilerArgs.add("-Xcontext-parameters")
+		freeCompilerArgs.add("-Xwarning-level=NOTHING_TO_INLINE:disabled")
+	}
 }
 
 publishMods {

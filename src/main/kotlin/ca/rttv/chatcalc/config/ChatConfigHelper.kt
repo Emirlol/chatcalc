@@ -1,10 +1,11 @@
 package ca.rttv.chatcalc.config
 
+import ca.rttv.chatcalc.config.Config.Companion.COPY_TYPE
+import ca.rttv.chatcalc.config.Config.Companion.DECIMAL_FORMAT
+import ca.rttv.chatcalc.config.Config.Companion.DISPLAY_ABOVE
+import ca.rttv.chatcalc.config.Config.Companion.RADIANS
 import ca.rttv.chatcalc.config.ConfigManager.config
-import ca.rttv.chatcalc.config.Configv2.Companion.COPY_TYPE
-import ca.rttv.chatcalc.config.Configv2.Companion.DECIMAL_FORMAT
-import ca.rttv.chatcalc.config.Configv2.Companion.DISPLAY_ABOVE
-import ca.rttv.chatcalc.config.Configv2.Companion.RADIANS
+import me.ancientri.rimelib.util.client
 import java.text.DecimalFormat
 
 object ChatConfigHelper {
@@ -37,6 +38,7 @@ object ChatConfigHelper {
 				} catch (e: IllegalArgumentException) {
 					throw IllegalArgumentException("Invalid decimal format: $value", e)
 				}
+				client.cameraEntity
 				ConfigManager.updateConfig { decimalFormat = format }
 			}
 

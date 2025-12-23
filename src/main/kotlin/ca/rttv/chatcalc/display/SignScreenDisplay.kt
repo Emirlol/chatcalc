@@ -2,6 +2,7 @@ package ca.rttv.chatcalc.display
 
 import ca.rttv.chatcalc.ChatCalc
 import ca.rttv.chatcalc.ChatHelper
+import ca.rttv.chatcalc.Section
 import ca.rttv.chatcalc.mixin.accessor.AbstractSignEditScreenAccessor
 import me.ancientri.rimelib.util.client
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
@@ -14,7 +15,7 @@ class SignScreenDisplay(val screen: AbstractSignEditScreen) : DisplayAbove() {
 	override val x: Int get() = (screen.width - WidgetTooltipPositioner.field_42158 - 12) / 2
 	override val y: Int = 40 + client.textRenderer.fontHeight + 17
 
-	override fun parseWord(): String? = with(screen as AbstractSignEditScreenAccessor) {
+	override fun parseSection(): Section? = with(screen as AbstractSignEditScreenAccessor) {
 		if (selectionManager == null) return null
 		val line = messages[currentRow]
 		if (line.isEmpty()) return null
@@ -36,7 +37,7 @@ class SignScreenDisplay(val screen: AbstractSignEditScreen) : DisplayAbove() {
 				ScreenKeyboardEvents.allowKeyPress(screen).register { _, keyInput, ->
 					display.allowKeyPress(keyInput.keycode)
 				}
-				ScreenEvents.beforeRender(screen).register { _, drawContext, _, _, _ ->
+				ScreenEvents.afterRender(screen).register { _, drawContext, _, _, _ ->
 					if (display.shouldRender()) display.render(drawContext)
 				}
 			}

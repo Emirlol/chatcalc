@@ -1,7 +1,8 @@
 package ca.rttv.chatcalc.display
 
-import ca.rttv.chatcalc.ChatCalc.tryParse
+import ca.rttv.chatcalc.ChatCalc
 import ca.rttv.chatcalc.ChatHelper
+import ca.rttv.chatcalc.Section
 import ca.rttv.chatcalc.mixin.accessor.ChatInputSuggesterAccessor
 import ca.rttv.chatcalc.mixin.accessor.ChatScreenAccessor
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
@@ -14,7 +15,7 @@ class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInput
 	override val y get() = chatField.y - 4
 	override val centered = false
 
-	override fun parseWord(): String = ChatHelper.getSection(chatField.text, chatField.cursor)
+	override fun parseSection(): Section = ChatHelper.getSection(chatField.text, chatField.cursor)
 
 	override fun allowKeyPress(keycode: Int): Boolean = suggester.pendingSuggestions.let { suggestions ->
 		super.allowKeyPress(keycode)
@@ -22,7 +23,7 @@ class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInput
 				|| !suggestions.isDone
 				|| suggestions.isCompletedExceptionally
 				|| !suggestions.getNow(null).isEmpty
-				|| !tryParse(chatField.text, chatField.cursor, chatField::setText)
+				|| !ChatCalc.tryParse(chatField.text, chatField.cursor, chatField::setText)
 	}
 
 	companion object {
