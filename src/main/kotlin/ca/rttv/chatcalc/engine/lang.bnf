@@ -8,17 +8,26 @@ program ::= statement* EOF
 // - Query statements (expression with = at the end to get evaluated value appended to input)
 // - Expressions to be evaluated as is, which is where majority of the language lies
 statement ::= function_definition
-          | variable_assignment
-          | undefine_statement
-          | query_statement
-          | expression_statement
+            | variable_assignment
+            | undefine_statement
+            | query_statement
+            | expression_statement
 
 function_definition ::= IDENTIFIER "(" parameter_list? ")" type_annotation? "=" expression
 parameter_list ::= parameter ("," parameter)*
 parameter ::= IDENTIFIER type_annotation? // Optional type annotation
 type_annotation ::= ":" type_union
 type_union ::= type ( "|" type )*
-type ::= "number" | "vector" | "function" | "boolean" | "any" // Primitive types. The user can't define new types so this is fine. We can just extend if we add new ones.
+type ::= "scalar"
+       | "positive_integer"
+       | "integer"
+       | "real"
+       | "vector"
+       | "matrix"
+       | "tensor"
+       | "boolean"
+       | "function"
+       | "any"
 
 variable_assignment ::= IDENTIFIER "=" expression
 undefine_statement ::= IDENTIFIER "=" EOF
@@ -40,8 +49,11 @@ exponentiation ::= postfix ( ( "^" | ".^" ) unary )?
 postfix ::= access ( "!" )*
 access ::= primary ( call_suffix | index_suffix )* // Function calls and indexing can be chained (e.g., func1()[0](arg1, arg2)) since the return type might be callable or indexable
 call_suffix ::= "(" arguments? ")"
-index_suffix ::= "[" (arguments | slice) "]" // 0-based indexing
-slice ::= ( expression? ":" expression? ) ( ":" expression? )? // start:end:step, all optional
+index_suffix ::= "[" index_items? "]"
+index_items ::= index_item ("," index_item)*
+index_item ::= expression | slice
+slice ::= expression? ":" expression? (":" expression?)?
+
 primary ::= NUMBER
           | BOOLEAN_LITERAL
           | lambda_expression
