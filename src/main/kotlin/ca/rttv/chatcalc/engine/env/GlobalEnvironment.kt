@@ -163,7 +163,7 @@ object GlobalEnvironment : Environment {
 			overload { // Strict comparison
 				arg("a", real)
 				arg("b", real)
-				returnType = real
+				returnType = integer
 				executes { args ->
 					val a = (args[0] as MathScalar).value
 					val b = (args[1] as MathScalar).value
@@ -195,11 +195,10 @@ object GlobalEnvironment : Environment {
 
 		reduce("mag", ::magnitude)
 
-		// TODO: CONTINUE VALIDATING TYPES FROM HERE AND GO BELOW
 		builtin("dist") {
 			arg("a", vector)
 			arg("b", vector)
-			returnType = scalar
+			returnType = real
 			executes { args ->
 				val a = args[0] as MathTensor
 				val b = args[1] as MathTensor
@@ -225,7 +224,7 @@ object GlobalEnvironment : Environment {
 
 		builtin("norm") {
 			arg("a", vector)
-			returnType = scalar
+			returnType = vector
 			executes { args ->
 				val vector = args[0] as MathTensor
 				val magnitude = magnitude(vector).value
@@ -237,10 +236,10 @@ object GlobalEnvironment : Environment {
 		}
 
 		builtin("lerp") {
-			arg("start", scalar or tensor)
-			arg("end", scalar or tensor)
-			arg("t", scalar)
-			returnType = scalar or tensor
+			arg("start", real or tensor)
+			arg("end", real or tensor)
+			arg("t", real)
+			returnType = real or tensor
 			executes { args ->
 				val start = args[0]
 				val end = args[1]
@@ -330,8 +329,8 @@ object GlobalEnvironment : Environment {
 				}
 			}
 			overload {
-				arg("startInclusive", scalar)
-				arg("step", scalar)
+				arg("startInclusive", real)
+				arg("step", real)
 				arg("shape", vector)
 				returnType = tensor
 				executes { args ->
@@ -423,7 +422,7 @@ object GlobalEnvironment : Environment {
 				}
 			}
 			overload {
-				arg("dims", scalar)
+				arg("dims", positiveInteger)
 				isVararg = true
 				returnType = tensor
 				executes { args ->
@@ -480,7 +479,7 @@ object GlobalEnvironment : Environment {
 				}
 			}
 			overload {
-				arg("dims", scalar)
+				arg("dims", positiveInteger)
 				isVararg = true
 				returnType = tensor
 				executes { args ->
@@ -549,7 +548,7 @@ object GlobalEnvironment : Environment {
 		// Flat data count in the tensor
 		builtin("count") {
 			arg("x", tensor)
-			returnType = scalar
+			returnType = integer
 			executes { args ->
 				val tensor = args[0] as MathTensor
 				MathScalar(tensor.size.toDouble())
@@ -559,7 +558,7 @@ object GlobalEnvironment : Environment {
 		// The number of items in the first dimension
 		builtin("len") {
 			arg("x", tensor)
-			returnType = scalar
+			returnType = positiveInteger
 			executes { args ->
 				val tensor = args[0] as MathTensor
 				if (tensor.size == 0) throw EvaluationError(Token(TokenType.IDENTIFIER, "len")) {
@@ -604,7 +603,7 @@ object GlobalEnvironment : Environment {
 		builtin("dot") {
 			arg("a", tensor)
 			arg("b", tensor)
-			returnType = scalar
+			returnType = real
 			executes { args ->
 				val a = args[0] as MathTensor
 				val b = args[1] as MathTensor
@@ -725,9 +724,9 @@ object GlobalEnvironment : Environment {
 
 		builtin("fold") {
 			arg("data", tensor)
-			arg("initialValue", scalar)
+			arg("initialValue", real)
 			arg("reducer", function)
-			returnType = scalar
+			returnType = real
 			executes { args ->
 				val data = args[0] as MathTensor
 				val initialValue = args[1] as MathScalar
@@ -757,7 +756,7 @@ object GlobalEnvironment : Environment {
 		builtin("reduce") {
 			arg("data", tensor)
 			arg("reducer", function)
-			returnType = scalar
+			returnType = real
 			executes { args ->
 				val data = args[0] as MathTensor
 				val reducer = args[1] as MathFunction
@@ -868,13 +867,10 @@ object GlobalEnvironment : Environment {
 			}
 			overload {
 				arg("itemCount", integer)
-				arg("stackLimit", integer)
+				arg("stackLimit", positiveInteger)
 				returnType = vector // [numOfBoxes, numOfStacks, numOfItems]
 				executes { args ->
 					val stackLimit = (args[1] as MathScalar).value.toInt()
-					if (stackLimit < 1) throw EvaluationError(Token(TokenType.IDENTIFIER, "shulkers")) {
-						"Stack limit must be at least 1." colored ColorPalette.ERROR
-					}
 					if (stackLimit == Int.MAX_VALUE) throw EvaluationError(Token(TokenType.IDENTIFIER, "shulkers")) {
 						"Stack limit must be less than 2,147,483,648." colored ColorPalette.ERROR
 					}
@@ -1021,8 +1017,8 @@ object GlobalEnvironment : Environment {
 		}
 
 		builtin("levelToXp") {
-			arg("level", positiveInteger)
-			returnType = positiveInteger
+			arg("level", integer)
+			returnType = integer
 			executes { args ->
 				when (val level = (args[0] as MathScalar).value) {
 					Double.POSITIVE_INFINITY -> MathScalar(level) // Infinite level is logically infinite xp, even if the level count is limited to 2^31-1.
@@ -1102,7 +1098,7 @@ object GlobalEnvironment : Environment {
 	private inline fun reduce(name: String, crossinline operation: (MathTensor) -> MathScalar) {
 		builtinOverloads(name) {
 			overload {
-				returnType = scalar
+				returnType = real
 				arg("vec", vector)
 				executes { args ->
 					val vector = args.first() as MathTensor
@@ -1110,9 +1106,9 @@ object GlobalEnvironment : Environment {
 				}
 			}
 			overload {
-				returnType = scalar
+				returnType = real
 				isVararg = true
-				arg("values", scalar)
+				arg("values", real)
 				executes { args ->
 					val values = DoubleArray(args.size) { (args[it] as MathScalar).value }
 					operation(ArrayTensor.vector(values))
@@ -1151,8 +1147,8 @@ object GlobalEnvironment : Environment {
 		builtinOverloads(name) {
 			val token = Token(TokenType.IDENTIFIER, name)
 			overload {
-				arg("x", scalar)
-				returnType = scalar
+				arg("x", real)
+				returnType = real
 				executes { Interpreter.map(it[0], token, function) }
 			}
 			overload {
@@ -1273,4 +1269,3 @@ class OverloadBuilder {
 		)
 	}
 }
-
