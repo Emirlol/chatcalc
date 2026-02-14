@@ -16,6 +16,9 @@ class Parser(private val tokens: List<Token>, private val source: String) {
 	private var insideAbsoluteExpressionDepth = 0
 
 	fun parse(): List<Statement> {
+		// This parses multiple statements, even if it's not currently used.
+		// This is to allow future extensions such as separating statements with semicolons or newlines in books, signs, etc.
+		// Whether allowing multiple statements or executing multiple lines at once makes sense is debatable, though.
 		val statements = mutableListOf<Statement>()
 		while (!isAtEnd()) statements += statement()
 		return statements
