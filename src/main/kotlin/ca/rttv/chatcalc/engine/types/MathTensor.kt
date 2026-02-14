@@ -131,11 +131,8 @@ sealed interface MathTensor : MathObject, SourceRepresentable, Iterable<Double> 
 			}
 		}
 
-		private val companionCodec = StringIdentifiable.createBasicCodec {
-			MathTensorCodecProvider::class.sealedSubclasses
-				.mapNotNull { it.objectInstance }
-				.toTypedArray()
-		}
+		// While I would prefer this to be done via reflection, there's some initialization issues during tests which throws exceptions
+		private val companionCodec = StringIdentifiable.createBasicCodec { arrayOf(RangeTensor.Companion, ArrayTensor.Companion) }
 
 		override val mapCodec: MapCodec<MathTensor> = companionCodec.dispatchMap(
 			"impl",
