@@ -22,7 +22,7 @@ enum class TokenType: StringIdentifiable {
 	LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE,
 
 	// Delimiters
-	COMMA, SEMICOLON, EQUAL,
+	COMMA, EQUAL,
 
 	// Multi-character tokens
 	DOT_STAR, DOT_SLASH, DOT_HAT,

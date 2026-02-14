@@ -35,7 +35,6 @@ class Lexer(source: String) {
 			'[' -> addToken(TokenType.LBRACKET)
 			']' -> addToken(TokenType.RBRACKET)
 			',' -> addToken(TokenType.COMMA)
-			';' -> addToken(TokenType.SEMICOLON)
 			'+' -> addToken(TokenType.PLUS)
 			'-' -> addToken(if (match('>')) TokenType.ARROW else TokenType.MINUS)
 			'→' -> addToken(TokenType.ARROW) // Add the unicode arrow too, because why not
