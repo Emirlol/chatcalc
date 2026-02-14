@@ -13,6 +13,7 @@ import net.minecraft.screen.ScreenTexts
  */
 class Parser(private val tokens: List<Token>, private val source: String) {
 	private var current = 0
+	private var insideAbsoluteExpressionDepth = 0
 
 	fun parse(): List<Statement> {
 		val statements = mutableListOf<Statement>()
@@ -199,6 +200,8 @@ class Parser(private val tokens: List<Token>, private val source: String) {
 	private fun multiplication(): Expression {
 		var expr = unary()
 		while (true) {
+			if (peek().type == TokenType.PIPE && insideAbsoluteExpressionDepth > 0) break
+
 			if (match(TokenType.STAR, TokenType.SLASH, TokenType.DOT_STAR, TokenType.DOT_SLASH, TokenType.PERCENT)) {
 				val operator = previous()!! // We just matched, this can't be null.
 				val right = unary()
@@ -244,8 +247,8 @@ class Parser(private val tokens: List<Token>, private val source: String) {
 	private fun access(): Expression {
 		var expr = primary()
 		while (true) {
-			when {
-				match(TokenType.LPAREN) && expr !is Literal -> {
+			when (expr) {
+				!is Literal if match(TokenType.LPAREN) -> {
 					val arguments = arguments()
 					consume(TokenType.RPAREN) {
 						"Expected '" colored ColorPalette.ERROR
@@ -255,7 +258,7 @@ class Parser(private val tokens: List<Token>, private val source: String) {
 					expr = FunctionCall(expr, arguments)
 				}
 
-				match(TokenType.LBRACKET) && expr !is Literal -> {
+				!is Literal if match(TokenType.LBRACKET) -> {
 					val indices = parseIndices()
 					consume(TokenType.RBRACKET) {
 						"Expected '" colored ColorPalette.ERROR
@@ -390,7 +393,12 @@ class Parser(private val tokens: List<Token>, private val source: String) {
 	}
 
 	private fun absoluteValue(): Expression {
-		val expr = expression()
+		insideAbsoluteExpressionDepth++
+		val expr = try {
+			expression()
+		} finally {
+			insideAbsoluteExpressionDepth--
+		}
 		consume(TokenType.PIPE) {
 			"Expect closing '" colored ColorPalette.ERROR
 			"|" colored ColorPalette.TEXT
