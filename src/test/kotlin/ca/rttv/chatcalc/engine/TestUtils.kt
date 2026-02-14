@@ -1,81 +1,98 @@
 package ca.rttv.chatcalc.engine
 
+import ca.rttv.chatcalc.config.ConfigManager
+import ca.rttv.chatcalc.config.UserEnvironmentManager
+import ca.rttv.chatcalc.engine.astvisitors.Interpreter
+import ca.rttv.chatcalc.engine.env.GlobalEnvironment
+import ca.rttv.chatcalc.engine.env.MapEnvironment
+import ca.rttv.chatcalc.engine.env.MutableEnvironment
 import ca.rttv.chatcalc.engine.lexer.Lexer
 import ca.rttv.chatcalc.engine.lexer.Token
-import ca.rttv.chatcalc.engine.lexer.TokenType
+import ca.rttv.chatcalc.engine.parser.Parser
+import ca.rttv.chatcalc.engine.types.MathBoolean
 import ca.rttv.chatcalc.engine.types.MathObject
 import ca.rttv.chatcalc.engine.types.MathScalar
 import ca.rttv.chatcalc.engine.types.MathTensor
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import org.junit.jupiter.api.DynamicContainer
-import org.junit.jupiter.api.DynamicNode
-import org.junit.jupiter.api.DynamicTest
+import org.junit.jupiter.api.Assertions.fail
 
-fun tokensToString(input: String) = lex(input).joinToString(" ") { "${it.type}(${it.lexeme})" }
+@Volatile
+private var initialized = false
 
-// Separate functions to allow infix on this one
-infix fun MathObject.shouldBeScalar(expected: Double) = shouldBeScalar(expected, 1e-6)
+private fun ensureConfigInitialized() {
+	if (!initialized) {
+		synchronized(Unit) {
+			if (!initialized) {
+				ConfigManager.init()
+				UserEnvironmentManager.init()
+				initialized = true
+			}
+		}
+	}
+}
+
+fun lex(input: String): List<Token> = Lexer(input).scanTokens().first
+
+fun parse(input: String): List<Statement> {
+	val (tokens, source) = Lexer(input).scanTokens()
+	return Parser(tokens, source).parse()
+}
+
+fun runProgram(
+	input: String,
+	dryRun: Boolean = true,
+	env: MutableEnvironment = MapEnvironment(parent = GlobalEnvironment),
+): EngineResult {
+	ensureConfigInitialized()
+	val statements = parse(input)
+	return Interpreter({ env }, dryRun).interpret(statements)
+}
+
+class EngineSession(
+	private val env: MutableEnvironment = MapEnvironment(parent = GlobalEnvironment),
+) {
+	fun run(input: String, dryRun: Boolean = false): EngineResult = runProgram(input, dryRun, env)
+
+	fun eval(input: String, dryRun: Boolean = false): MathObject = run(input, dryRun).toMathObjectOrThrow()
+}
+
+fun EngineResult.toMathObjectOrThrow(): MathObject = when (this) {
+	is EngineResult.Value -> output
+	is EngineResult.Append -> output
+	is EngineResult.Error<*> -> throw error
+	is EngineResult.Clear -> fail("Expected a value result, got clear.")
+}
+
+infix fun MathObject.shouldBeScalar(expected: Double) = shouldBeScalar(expected, 1e-9)
 
 fun MathObject.shouldBeScalar(expected: Double, tolerance: Double) {
 	shouldBeInstanceOf<MathScalar>()
 	value shouldBe (expected plusOrMinus tolerance)
 }
 
-fun MathObject.shouldBeTensor(expectedData: DoubleArray, expectedShape: IntArray, tolerance: Double = 1e-6) {
+fun MathObject.shouldBeBoolean(expected: Boolean) {
+	shouldBeInstanceOf<MathBoolean>()
+	value shouldBe expected
+}
+
+fun MathObject.shouldBeTensor(expectedData: DoubleArray, expectedShape: IntArray, tolerance: Double = 1e-9) {
 	shouldBeInstanceOf<MathTensor>()
 	shape shouldBe expectedShape
-	data.size shouldBe expectedData.size
+	size shouldBe expectedData.size
 	for (i in expectedData.indices) {
-		data[i] shouldBe (expectedData[i] plusOrMinus tolerance)
+		getFlat(i) shouldBe (expectedData[i] plusOrMinus tolerance)
 	}
 }
 
-@DslMarker
-annotation class MathTestDsl
-
-@MathTestDsl
-class MathTestBuilder {
-    val nodes = mutableListOf<DynamicNode>()
-
-    infix fun String.shouldEvalTo(number: Number) {
-		val expected = number.toDouble()
-	    nodes += DynamicTest.dynamicTest("$this = $expected") {
-		    MathEngine.eval(this, true).shouldBeScalar(expected)
-	    }
-    }
-
-    fun tensor(input: String, data: DoubleArray, shape: IntArray) {
-	    nodes += DynamicTest.dynamicTest(input) {
-		    eval(input).shouldBeTensor(data, shape)
-	    }
-    }
-
-	infix fun String.shouldFixTo(string: String) {
-		nodes += DynamicTest.dynamicTest("$this should fix to $string") {
-			Lexer.fixParenthesis(this) shouldBe string
+fun String.shouldFail(dryRun: Boolean = true) {
+	try {
+		when (runProgram(this, dryRun = dryRun)) {
+			is EngineResult.Error<*> -> Unit
+			else -> fail("Expected failure for input: $this")
 		}
+	} catch (_: EngineError) {
+		// Parse/lex errors can be thrown before EngineResult is produced.
 	}
-
-	infix fun String.shouldLexTo(expected: Iterable<TokenType>) {
-		nodes += DynamicTest.dynamicTest("$this should lex to ${expected.joinToString(" ")}") {
-			lex(this).map(Token::type).dropLastWhile { it == TokenType.EOF } shouldBe (expected)
-		}
-	}
-
-	fun String.shouldFail() {
-		nodes += DynamicTest.dynamicTest("$this should fail") {
-			shouldThrow<EngineError> {
-				eval(this)
-			}
-		}
-    }
-
-    fun group(name: String, block: MathTestBuilder.() -> Unit) {
-	    nodes += DynamicContainer.dynamicContainer(name, MathTestBuilder().apply(block).nodes)
-    }
 }
-
-fun mathTests(block: MathTestBuilder.() -> Unit): List<DynamicNode> = MathTestBuilder().apply(block).nodes
