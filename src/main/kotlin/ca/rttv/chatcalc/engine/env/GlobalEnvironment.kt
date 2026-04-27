@@ -48,11 +48,19 @@ object GlobalEnvironment : Environment {
 		computed("xp") { MathScalar(player!!.totalExperience.toDouble()) }
 		computed("xpLevel") { MathScalar(player!!.experienceLevel.toDouble()) }
 		computed("xpToNextLevel") { MathScalar(player!!.nextLevelExperience.toDouble()) }
-		aliases("random", "rand") { computed(it) { MathScalar(Math.random()) } }
 		aliases("radian", "rad") { computed(it) { MathScalar(if (config.radians) 1.0 else 57.29577951308232) } }
 		aliases("degree", "deg") { computed(it) { MathScalar(if (config.radians) 0.017453292519943295 else 1.0) } }
 
 		// Functions
+
+		aliases("random", "rand") {
+			builtin(it) {
+				returnType = real
+				executes {
+					MathScalar(Math.random())
+				}
+			}
+		}
 
 		// Trig functions
 		trig("sin", ::sin)
