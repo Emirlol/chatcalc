@@ -3,8 +3,13 @@ package ca.rttv.chatcalc.display
 import ca.rttv.chatcalc.ChatCalc
 import ca.rttv.chatcalc.Section
 import ca.rttv.chatcalc.config.ConfigManager
+import ca.rttv.chatcalc.config.UserEnvironmentManager
+import ca.rttv.chatcalc.engine.EngineError
 import ca.rttv.chatcalc.engine.EngineResult
-import ca.rttv.chatcalc.engine.MathEngine
+import ca.rttv.chatcalc.engine.astvisitors.Interpreter
+import ca.rttv.chatcalc.engine.lexer.Lexer
+import ca.rttv.chatcalc.engine.lexer.TokenType
+import ca.rttv.chatcalc.engine.parser.Parser
 import ca.rttv.chatcalc.engine.types.SourceRepresentable
 import kotlinx.coroutines.future.future
 import me.ancientri.rimelib.util.CoroutineUtil
@@ -85,8 +90,18 @@ abstract class DisplayAbove() {
 			calculationFuture = null
 		}
 
-		calculationFuture = evalStr to CoroutineUtil.globalJob.future { MathEngine.eval(evalStr, dryRun = true) }
-		return null // No return value for the first try since it might not be a valid string at all, we don't want to show "Calculating..." on literally every string input
+		// This is done synchronously since it's a cheap operation and allows us to decide whether we should ignore the input or go ahead with showing a placeholder "Calculating..." text
+		val parsed = try {
+			val (lexed, source) = Lexer(evalStr).scanTokens()
+			if (lexed.isEmpty()) return null
+			if (lexed.any { it.type == TokenType.IDENTIFIER && it.lexeme !in UserEnvironmentManager.config }) return null // This is the key part that stops random letters from triggering calculations
+			Parser(lexed, source).parse()
+		} catch (_: EngineError) {
+			return null // Not a valid expression
+		}
+
+		calculationFuture = evalStr to CoroutineUtil.globalJob.future { Interpreter(UserEnvironmentManager::config, true).interpret(parsed) }
+		return calculating
 	}
 
 	private fun processEngineResult(evalStr: String, result: EngineResult) = when (result) {
