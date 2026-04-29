@@ -15,6 +15,8 @@ ksp = "2.3.4" #https://github.com/google/ksp/releases
 rimelib = "2.3.4+1.21.10" # https://modrinth.com/mod/rimelib
 config = "1.0.3"
 pods4k = "0.7.0" # https://github.com/daniel-rusu/pods4k/releases
+modMenu = "16.0.1" # https://modrinth.com/mod/modmenu/versions
+
 
 kotest = "6.0.7" # https://kotest.io/
 junit = "6.0.1"
@@ -29,6 +31,7 @@ rimelib = { module = "me.ancientri:rimelib", version.ref = "rimelib" }
 config-annotation = { module = "me.ancientri.symbols:config-annotation", version.ref = "config" }
 config-processor = { module = "me.ancientri.symbols:config-processor", version.ref = "config" }
 pods4k = { module = "com.danrusu.pods4k:pods4k", version.ref = "pods4k" }
+modMenu = { module = "com.terraformersmc:modmenu", version.ref = "modMenu" }
 
 fabricLoaderJunit = { module = "net.fabricmc:fabric-loader-junit", version.ref = "fabricLoader" }
 #kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" } # Causes issues with fabric stuff

@@ -27,6 +27,9 @@
 				"value": "ca.rttv.chatcalc.ChatCalc::init",
 				"adapter": "kotlin"
 			}
+		],
+		"modmenu": [
+			"ca.rttv.chatcalc.compat.ModMenuApiImpl"
 		]
 	},
 	"mixins": [
@@ -38,5 +41,8 @@
 		"minecraft": "${minecraft_version}",
 		"fabric-language-kotlin": ">=${fabric_kotlin_version}",
 		"fabric-api": ">=${fabric_api_version}"
+	},
+	"suggests": {
+		"modmenu": ">=${modmenu_version}"
 	}
 }

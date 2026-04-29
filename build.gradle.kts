@@ -25,6 +25,15 @@ repositories {
 			includeGroupAndSubgroups("me.ancientri")
 		}
 	}
+	exclusiveContent {
+		forRepository {
+			maven("https://maven.terraformersmc.com/releases") { name = "Terraformers" }
+		}
+		filter {
+			@Suppress("UnstableApiUsage")
+			includeGroupAndSubgroups("com.terraformersmc")
+		}
+	}
 }
 
 dependencies {
@@ -33,6 +42,7 @@ dependencies {
 	modImplementation(libs.fabricLoader)
 	modImplementation(libs.fabricLanguageKotlin)
 	modImplementation(libs.fabricApi)
+	modCompileOnly(libs.modMenu)
 
 	include(modImplementation(libs.rimelib.get())!!)
 
@@ -59,6 +69,7 @@ tasks {
 			"version" to project.version as String,
 			"fabric_kotlin_version" to libs.versions.fabricLanguageKotlin.get(),
 			"fabric_api_version" to libs.versions.fabricApi.get(),
+			"modmenu_version" to libs.versions.modMenu.get(),
 			"minecraft_version" to minecraftVersion,
 		)
 
