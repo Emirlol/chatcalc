@@ -1,6 +1,5 @@
 package ca.rttv.chatcalc.display
 
-import ca.rttv.chatcalc.ChatCalc
 import ca.rttv.chatcalc.ChatHelper
 import ca.rttv.chatcalc.Section
 import ca.rttv.chatcalc.mixin.accessor.AbstractSignEditScreenAccessor
@@ -23,7 +22,7 @@ class SignScreenDisplay(val screen: AbstractSignEditScreen) : DisplayAbove() {
 	}
 
 	override fun allowKeyPress(keycode: Int): Boolean = with(screen as AbstractSignEditScreenAccessor) {
-		super.allowKeyPress(keycode) || selectionManager == null || !ChatCalc.tryParse(messages[currentRow], selectionManager.selectionEnd) {
+		super.allowKeyPress(keycode) || selectionManager == null || !super.tryParse(messages[currentRow], selectionManager.selectionEnd) {
 			messages[currentRow] = it
 			selectionManager.putCursorAtEnd()
 		}

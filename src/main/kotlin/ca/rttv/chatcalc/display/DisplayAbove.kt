@@ -1,11 +1,15 @@
 package ca.rttv.chatcalc.display
 
-import ca.rttv.chatcalc.ChatCalc
+import ca.rttv.chatcalc.ChatCalc.chatPrefix
+import ca.rttv.chatcalc.ChatHelper
 import ca.rttv.chatcalc.Section
 import ca.rttv.chatcalc.config.ConfigManager
 import ca.rttv.chatcalc.config.UserEnvironmentManager
+import ca.rttv.chatcalc.debugSend
 import ca.rttv.chatcalc.engine.EngineError
 import ca.rttv.chatcalc.engine.EngineResult
+import ca.rttv.chatcalc.engine.EngineResult.*
+import ca.rttv.chatcalc.engine.MathEngine
 import ca.rttv.chatcalc.engine.astvisitors.Interpreter
 import ca.rttv.chatcalc.engine.lexer.Lexer
 import ca.rttv.chatcalc.engine.lexer.TokenType
@@ -15,21 +19,27 @@ import kotlinx.coroutines.future.future
 import me.ancientri.rimelib.util.CoroutineUtil
 import me.ancientri.rimelib.util.client
 import me.ancientri.rimelib.util.color.ColorPalette
+import me.ancientri.rimelib.util.player
+import me.ancientri.rimelib.util.text.sendText
 import me.ancientri.rimelib.util.text.text
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.text.Text
+import org.lwjgl.glfw.GLFW
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
+import java.util.regex.Pattern
 
 // Displays the result of the expression the cursor is in as a tooltip above the text field.
 abstract class DisplayAbove() {
 	protected abstract val x: Int
 	protected abstract val y: Int
 	protected open val centered: Boolean = true
+	private var oneFrameDelay = false
 
 	/**
 	 * @return `true` if the keycode is handled by this class.
 	 */
-	open fun allowKeyPress(keycode: Int) = keycode != ChatCalc.COMPLETION_KEY
+	open fun allowKeyPress(keycode: Int) = keycode != COMPLETION_KEY
 
 	fun shouldRender(): Boolean = ConfigManager.config.displayAbove
 
@@ -46,7 +56,7 @@ abstract class DisplayAbove() {
 	@JvmOverloads
 	fun render(drawContext: DrawContext, x: Int = this.x, y: Int = this.y) {
 		val section = parseSection() ?: return
-		if (ChatCalc.NUMBER.matches(section.text)) return
+		if (NUMBER_PATTERN.matcher(section.text).matches()) return // Displaying basic numbers is not useful and might be obtrusive
 
 		val textToRender = getTextToRender(section.text) ?: return
 		val lines = client.textRenderer.wrapLines(textToRender, Int.MAX_VALUE) // We just need the LineBreakingVisitor to split the lines
@@ -101,11 +111,12 @@ abstract class DisplayAbove() {
 		}
 
 		calculationFuture = evalStr to CoroutineUtil.globalJob.future { Interpreter(UserEnvironmentManager::config, true).interpret(parsed) }
-		return calculating
+		// The first frame will be the previous value to prevent flashing when the user is just doing a very minor change that would end up in a close result
+		return cached?.second ?: calculating
 	}
 
 	private fun processEngineResult(evalStr: String, result: EngineResult) = when (result) {
-		is EngineResult.Value -> {
+		is Value -> {
 			val output = result.output
 			if (output is SourceRepresentable && output.toSourceString() == evalStr) null
 			else text {
@@ -114,7 +125,7 @@ abstract class DisplayAbove() {
 			}
 		}
 
-		is EngineResult.Append -> { // This is so that we can still display the result at the end of the expression.
+		is Append -> { // This is so that we can still display the result at the end of the expression.
 			val output = result.output
 			text {
 				"= " colored ColorPalette.SUBTEXT2
@@ -122,7 +133,69 @@ abstract class DisplayAbove() {
 			}
 		}
 
-		is EngineResult.Clear -> result.feedback
-		is EngineResult.Error<*> -> null // No need to display the error, it just means this isn't a valid expression.
+		is Clear -> result.feedback
+		is Error<*> -> null // No need to display the error, it just means this isn't a valid expression.
+	}
+
+	/**
+	 * Attempts to parse the text at the given cursor position.
+	 * @return Whether the text was parsed successfully.
+	 *         If it was, the [setMethod] will be called somewhere in the process.
+	 */
+	fun tryParse(originalText: String, cursor: Int, setMethod: Consumer<String>): Boolean {
+		// TODO: Maybe refactor this somehow? I'm really unhappy with how much unrelated work is being done here but I can't see an easy way to refactoring without introducing a bunch of fluff code
+		val section = ChatHelper.getSection(originalText, cursor)
+		try {
+			// This re-evals the expression for the side effects, so the cached value can't be used here
+			when (val result = MathEngine.eval(section.text, dryRun = false)) {
+				is Clear -> ChatHelper.replaceSection(section, "", setMethod)
+				is Value -> {
+					val output = result.output
+					if (output is SourceRepresentable) {
+						when (val str = output.toSourceString()) {
+							null -> player?.sendText {
+								+chatPrefix
+								"Output value cannot be represented in source form." colored ColorPalette.ERROR
+							}
+							else -> {
+								ChatHelper.replaceSection(section, str, setMethod)
+								ConfigManager.config.applyCopyType(str)
+							}
+						}
+					} else return false // Builtin function or something that can't be represented in source form
+				}
+
+				is Append -> {
+					val output = result.output
+					if (output is SourceRepresentable) {
+						when (val str = output.toSourceString()) {
+							null -> player?.sendText {
+								+chatPrefix
+								"Output value cannot be represented in source form." colored ColorPalette.ERROR
+							}
+							else -> {
+								ChatHelper.appendAfterSection(section, str, setMethod)
+								ConfigManager.config.applyCopyType(str)
+							}
+						}
+					} else return false
+				}
+
+				is Error<*> -> player?.debugSend {
+					+result.error.messageText
+				}
+			}
+			return true
+		} catch (e: EngineError) {
+			player?.debugSend {
+				+e.messageText
+			}
+			return false
+		}
+	}
+
+	companion object {
+		const val COMPLETION_KEY = GLFW.GLFW_KEY_TAB
+		val NUMBER_PATTERN: Pattern = Pattern.compile("[-+]?(\\d,?)*(\\.\\d+)?")
 	}
 }

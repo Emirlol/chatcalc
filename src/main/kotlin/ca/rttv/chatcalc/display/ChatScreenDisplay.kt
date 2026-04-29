@@ -1,6 +1,5 @@
 package ca.rttv.chatcalc.display
 
-import ca.rttv.chatcalc.ChatCalc
 import ca.rttv.chatcalc.ChatHelper
 import ca.rttv.chatcalc.Section
 import ca.rttv.chatcalc.mixin.accessor.ChatInputSuggesterAccessor
@@ -23,7 +22,7 @@ class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInput
 				|| !suggestions.isDone
 				|| suggestions.isCompletedExceptionally
 				|| !suggestions.getNow(null).isEmpty
-				|| !ChatCalc.tryParse(chatField.text, chatField.cursor, chatField::setText)
+				|| !super.tryParse(chatField.text, chatField.cursor, chatField::setText)
 	}
 
 	companion object {
