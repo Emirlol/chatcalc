@@ -1,12 +1,16 @@
 package ca.rttv.chatcalc
 
 import ca.rttv.chatcalc.config.ConfigManager
+import ca.rttv.chatcalc.config.ConfigScreen
 import ca.rttv.chatcalc.config.UserEnvironmentManager
 import ca.rttv.chatcalc.display.ChatScreenDisplay
 import ca.rttv.chatcalc.display.SignScreenDisplay
 import me.ancientri.rimelib.util.LoggerFactory
+import me.ancientri.rimelib.util.client
 import me.ancientri.rimelib.util.color.ColorPalette
+import me.ancientri.rimelib.util.command.register
 import me.ancientri.rimelib.util.text.text
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.minecraft.screen.ScreenTexts
 
 object ChatCalc {
@@ -15,6 +19,15 @@ object ChatCalc {
 		UserEnvironmentManager.init()
 		ChatScreenDisplay.init()
 		SignScreenDisplay.init()
+		ClientCommandRegistrationCallback.EVENT.register("chatcalc") {
+			literal("config") {
+				executes {
+					client.send {
+						client.setScreen(ConfigScreen(null))
+					}
+				}
+			}
+		}
 	}
 
 	val loggerFactory = LoggerFactory("ChatCalc")
