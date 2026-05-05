@@ -4,6 +4,7 @@ import ca.rttv.chatcalc.ChatHelper
 import ca.rttv.chatcalc.Section
 import ca.rttv.chatcalc.mixin.accessor.ChatInputSuggesterAccessor
 import ca.rttv.chatcalc.mixin.accessor.ChatScreenAccessor
+import ca.rttv.chatcalc.mixin.accessor.TextFieldWidgetAccessor
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents
 import net.minecraft.client.gui.screen.ChatScreen
@@ -36,6 +37,13 @@ class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInput
 				instance = ChatScreenDisplay(screen.chatField, screen.chatInputSuggestor as ChatInputSuggesterAccessor)
 				ScreenKeyboardEvents.allowKeyPress(screen).register { _, keyInput, ->
 					instance!!.allowKeyPress(keyInput.keycode)
+				}
+				val consumer = (screen.chatField as TextFieldWidgetAccessor).changedListener
+
+				if (consumer == null) {
+					screen.chatField.setChangedListener { instance!!.onKeyPress() }
+				} else {
+					screen.chatField.setChangedListener(consumer.andThen { instance!!.onKeyPress() })
 				}
 			}
 		}

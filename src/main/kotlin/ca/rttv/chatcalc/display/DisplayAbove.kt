@@ -3,20 +3,16 @@ package ca.rttv.chatcalc.display
 import ca.rttv.chatcalc.ChatCalc.chatPrefix
 import ca.rttv.chatcalc.ChatHelper
 import ca.rttv.chatcalc.Section
+import ca.rttv.chatcalc.async.CalculationManager
 import ca.rttv.chatcalc.config.ConfigManager
-import ca.rttv.chatcalc.config.UserEnvironmentManager
 import ca.rttv.chatcalc.debugSend
 import ca.rttv.chatcalc.engine.EngineError
 import ca.rttv.chatcalc.engine.EngineResult
 import ca.rttv.chatcalc.engine.EngineResult.*
 import ca.rttv.chatcalc.engine.MathEngine
-import ca.rttv.chatcalc.engine.astvisitors.Interpreter
 import ca.rttv.chatcalc.engine.lexer.Lexer
-import ca.rttv.chatcalc.engine.lexer.TokenType
 import ca.rttv.chatcalc.engine.parser.Parser
 import ca.rttv.chatcalc.engine.types.SourceRepresentable
-import kotlinx.coroutines.future.future
-import me.ancientri.rimelib.util.CoroutineUtil
 import me.ancientri.rimelib.util.client
 import me.ancientri.rimelib.util.color.ColorPalette
 import me.ancientri.rimelib.util.player
@@ -34,12 +30,32 @@ abstract class DisplayAbove() {
 	protected abstract val x: Int
 	protected abstract val y: Int
 	protected open val centered: Boolean = true
-	private var oneFrameDelay = false
 
 	/**
 	 * @return `true` if the keycode is handled by this class.
 	 */
 	open fun allowKeyPress(keycode: Int) = keycode != COMPLETION_KEY
+
+	fun onKeyPress() {
+		val section = parseSection()
+		if (section == null || section.text.isEmpty() || NUMBER_PATTERN.matcher(section.text).matches()) {
+			calculationFuture?.second?.cancel(true)
+			calculationFuture = null
+			cachedTextToRender = null
+			return
+		}
+		if (section.text == cachedTextToRender?.first) return // No need to trigger a new calculation if the text hasn't changed
+
+		val parsed = try {
+			val (lexed, source) = Lexer(section.text).scanTokens()
+			if (lexed.isEmpty()) return
+			Parser(lexed, source).parse()
+		} catch (_: EngineError) {
+			return // Not a valid expression, no need to pass the message
+		}
+
+		calculationFuture = section.text to CalculationManager.requestInterpretation(parsed)
+	}
 
 	fun shouldRender(): Boolean = ConfigManager.config.displayAbove
 
@@ -87,6 +103,7 @@ abstract class DisplayAbove() {
 		val calculation = calculationFuture
 		if (calculation != null) {
 			if (calculation.first == evalStr) {
+				// Repeatedly checking this on render is easier to manage than callbacks, which would require a lot of extra code to handle edge cases
 				if (calculation.second.isDone) {
 					try {
 						val result = calculation.second.getNow(null)
@@ -100,19 +117,7 @@ abstract class DisplayAbove() {
 			calculationFuture = null
 		}
 
-		// This is done synchronously since it's a cheap operation and allows us to decide whether we should ignore the input or go ahead with showing a placeholder "Calculating..." text
-		val parsed = try {
-			val (lexed, source) = Lexer(evalStr).scanTokens()
-			if (lexed.isEmpty()) return null
-			if (lexed.any { it.type == TokenType.IDENTIFIER && it.lexeme !in UserEnvironmentManager.config }) return null // This is the key part that stops random letters from triggering calculations
-			Parser(lexed, source).parse()
-		} catch (_: EngineError) {
-			return null // Not a valid expression
-		}
-
-		calculationFuture = evalStr to CoroutineUtil.globalJob.future { Interpreter(UserEnvironmentManager::config, true).interpret(parsed) }
-		// The first frame will be the previous value to prevent flashing when the user is just doing a very minor change that would end up in a close result
-		return cached?.second ?: calculating
+		return null
 	}
 
 	private fun processEngineResult(evalStr: String, result: EngineResult) = when (result) {

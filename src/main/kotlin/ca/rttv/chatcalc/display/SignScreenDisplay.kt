@@ -34,6 +34,7 @@ class SignScreenDisplay(val screen: AbstractSignEditScreen) : DisplayAbove() {
 				if (screen !is AbstractSignEditScreen) return@register
 				val display = SignScreenDisplay(screen)
 				ScreenKeyboardEvents.allowKeyPress(screen).register { _, keyInput, ->
+					display.onKeyPress()
 					display.allowKeyPress(keyInput.keycode)
 				}
 				ScreenEvents.afterRender(screen).register { _, drawContext, _, _, _ ->

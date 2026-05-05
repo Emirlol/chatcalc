@@ -1,10 +1,12 @@
 package ca.rttv.chatcalc
 
+import ca.rttv.chatcalc.async.CalculationManager
 import ca.rttv.chatcalc.config.ConfigManager
 import ca.rttv.chatcalc.config.ConfigScreen
 import ca.rttv.chatcalc.config.UserEnvironmentManager
 import ca.rttv.chatcalc.display.ChatScreenDisplay
 import ca.rttv.chatcalc.display.SignScreenDisplay
+import me.ancientri.rimelib.util.CoroutineUtil
 import me.ancientri.rimelib.util.LoggerFactory
 import me.ancientri.rimelib.util.client
 import me.ancientri.rimelib.util.color.ColorPalette
@@ -28,11 +30,13 @@ object ChatCalc {
 				}
 			}
 		}
+
+		with(CoroutineUtil.globalJob) {
+			CalculationManager.startWorker()
+		}
 	}
 
 	val loggerFactory = LoggerFactory("ChatCalc")
-
-
 
 	val chatPrefix = text {
 		"[" colored ColorPalette.SURFACE3
