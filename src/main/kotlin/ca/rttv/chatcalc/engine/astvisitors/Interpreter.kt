@@ -487,7 +487,7 @@ class Interpreter(rootEnvSupplier: Supplier<MutableEnvironment>, val dryRun: Boo
 
 	private fun compare(l: MathObject, r: MathObject, op: Token, comp: (Double, Double) -> Boolean): MathBoolean {
 		if (l is MathScalar && r is MathScalar) return MathBoolean(comp(l.value, r.value))
-		throw EvaluationError(op) { "Comparison only supported for scalars." colored ColorPalette.ERROR }
+		throw EvaluationError(op) { "Comparison is only supported for scalars." colored ColorPalette.ERROR }
 	}
 
 	fun matMul(a: MathTensor, b: MathTensor): MathTensor {
@@ -638,7 +638,7 @@ class Interpreter(rootEnvSupplier: Supplier<MutableEnvironment>, val dryRun: Boo
 
 			else -> throw EvaluationError(opToken) {
 				"Operation " colored ColorPalette.ERROR
-				opToken.lexeme colored ColorPalette.ERROR
+				opToken.lexeme colored ColorPalette.TEXT
 				" can only be applied to scalars or tensors." colored ColorPalette.ERROR
 			}
 		}
