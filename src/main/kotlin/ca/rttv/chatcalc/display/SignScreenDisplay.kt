@@ -23,8 +23,7 @@ class SignScreenDisplay(val screen: AbstractSignEditScreen) : Display() {
 	}
 
 	override fun allowKeyPress(keycode: Int): Boolean = with(screen as AbstractSignEditScreenAccessor) {
-		val section = parseSection() ?: return true
-		super.allowKeyPress(keycode) || selectionManager == null || !super.tryParse(section) {
+		super.allowKeyPress(keycode) || selectionManager == null || !super.applyResults {
 			messages[currentRow] = it
 			selectionManager.putCursorAtEnd()
 		}

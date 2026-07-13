@@ -8,13 +8,13 @@ import ca.rttv.chatcalc.engine.lexer.Lexer
 import ca.rttv.chatcalc.engine.parser.Parser
 
 fun interface MathEngine {
-	fun eval(input: String, dryRun: Boolean): EngineResult
+	fun eval(input: String): EngineResult
 
 	companion object Default : MathEngine {
-		override fun eval(input: String, dryRun: Boolean): EngineResult {
+		override fun eval(input: String): EngineResult {
 			val (lexed, source) = Lexer(input).scanTokens()
 			val parsed = Parser(lexed, source).parse()
-			return Interpreter(UserEnvironmentManager::config, dryRun).interpret(parsed)
+			return Interpreter(UserEnvironmentManager::config).interpret(parsed)
 		}
 	}
 }

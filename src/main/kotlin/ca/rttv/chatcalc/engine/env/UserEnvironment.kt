@@ -17,9 +17,9 @@ data class UserEnvironment(private val values: Map<String, MathObject> = emptyMa
 		if (key in parent) {
 			val existing = parent.getOrThrow(key)
 			throw EnvironmentError {
-				"Cannot shadow existing ${existing.type.asString()} '" colored ColorPalette.ERROR
+				"Cannot shadow ${existing.type.asString()} '" colored ColorPalette.ERROR
 				key colored ColorPalette.TEXT
-				"'." colored ColorPalette.ERROR
+				"' because it's defined in the global environment." colored ColorPalette.ERROR
 			}
 		}
 		UserEnvironmentManager.updateConfig {
@@ -55,9 +55,9 @@ data class UserEnvironment(private val values: Map<String, MathObject> = emptyMa
 			if (key in requireNotNull(parent)) {
 				val existing = parent.getOrThrow(key)
 				throw EnvironmentError {
-					"Cannot shadow existing ${existing.type.asString()} '" colored ColorPalette.ERROR
+					"Cannot shadow ${existing.type.asString()} '" colored ColorPalette.ERROR
 					key colored ColorPalette.TEXT
-					"'." colored ColorPalette.ERROR
+					"' because it's defined in the global environment." colored ColorPalette.ERROR
 				}
 			}
 			super.set(key, value)

@@ -3,11 +3,14 @@
 package ca.rttv.chatcalc.engine.astvisitors
 
 import ca.rttv.chatcalc.engine.*
+import ca.rttv.chatcalc.engine.astvisitors.Interpreter.Context
+import ca.rttv.chatcalc.engine.env.EnvDelta
 import ca.rttv.chatcalc.engine.env.MapEnvironment
 import ca.rttv.chatcalc.engine.env.MutableEnvironment
 import ca.rttv.chatcalc.engine.lexer.Token
 import ca.rttv.chatcalc.engine.lexer.TokenType
 import ca.rttv.chatcalc.engine.types.*
+import com.danrusu.pods4k.immutableArrays.ImmutableArray
 import it.unimi.dsi.fastutil.doubles.Double2DoubleFunction
 import it.unimi.dsi.fastutil.doubles.DoubleBinaryOperator
 import me.ancientri.rimelib.util.color.ColorPalette
@@ -16,7 +19,17 @@ import me.ancientri.rimelib.util.text.text
 import net.minecraft.screen.ScreenTexts
 import java.util.function.Supplier
 
-class Interpreter(rootEnvSupplier: Supplier<MutableEnvironment>, val dryRun: Boolean) : StatementVisitor<MathObject?>, ExpressionVisitor<MathObject> {
+class Interpreter(rootEnvSupplier: Supplier<MutableEnvironment>) : StatementVisitor<MathObject?, Context>, ExpressionVisitor<MathObject> {
+	class Context {
+		private val envDeltas = ImmutableArray.Builder<EnvDelta>()
+
+		operator fun plusAssign(delta: EnvDelta) {
+			envDeltas += delta
+		}
+
+		fun build(): ImmutableArray<EnvDelta> = envDeltas.build()
+	}
+
 	/**
 	 * Persistent root environment containing the user's definitions.
 	 */
@@ -31,22 +44,23 @@ class Interpreter(rootEnvSupplier: Supplier<MutableEnvironment>, val dryRun: Boo
 
 	fun interpret(statements: List<Statement>): EngineResult {
 		require(statements.isNotEmpty()) { "No statements to interpret." }
+		val context = Context()
 
 		currentEnvironment = rootEnvironment
 		try {
 			for (i in statements.indices) {
 				val statement = statements[i]
-				if (i != statements.lastIndex) statement.accept(this) // Execute for side effects
+				if (i != statements.lastIndex) statement.accept(this, context) // Execute for side effects. This is probably not the best way to go about this, but we're not explicitly supporting multiple statements during execution anyway.
 
 				return when (statement) { // Return a result for the very last statement
 					is Query -> {
 						val result = evaluate(statement.expression)
-						EngineResult.Append(result)
+						EngineResult.Append(result, context.build())
 					}
 
 					is FunctionDefinition -> {
-						statement.accept(this)
-						EngineResult.Clear {
+						statement.accept(this, context)
+						EngineResult.Clear(context.build()) {
 							"(" colored ColorPalette.SUBTEXT2
 							"Define " colored ColorPalette.TEXT
 							+PrettyPrinter.print(statement)
@@ -56,11 +70,16 @@ class Interpreter(rootEnvSupplier: Supplier<MutableEnvironment>, val dryRun: Boo
 
 					is Undefine -> {
 						val key = statement.name.lexeme
-						val existing = if (dryRun) rootEnvironment[key] else null
 
-						statement.accept(this)
+						val existing = rootEnvironment[key] ?: throw EvaluationError(statement.name) {
+							"Cannot undefine '" colored ColorPalette.ERROR
+							key colored ColorPalette.TEXT
+							"' because it is not defined." colored ColorPalette.ERROR
+						}
 
-						EngineResult.Clear {
+						statement.accept(this, context)
+
+						EngineResult.Clear(context.build()) {
 							"(" colored ColorPalette.SUBTEXT2
 							"Undefine " colored ColorPalette.TEXT
 							statement.name.lexeme colored ColorPalette.TEXT
@@ -70,8 +89,8 @@ class Interpreter(rootEnvSupplier: Supplier<MutableEnvironment>, val dryRun: Boo
 					}
 
 					is VariableAssignment -> {
-						val result = requireNotNull(statement.accept(this)) { "This should've returned a preview object" }
-						EngineResult.Clear {
+						val result = requireNotNull(statement.accept(this, context)) { "This should've returned a preview object" }
+						EngineResult.Clear(context.build()) {
 							"(" colored ColorPalette.SUBTEXT2
 							"Assign " colored ColorPalette.TEXT
 							statement.name.lexeme colored ColorPalette.ACCENT
@@ -82,9 +101,9 @@ class Interpreter(rootEnvSupplier: Supplier<MutableEnvironment>, val dryRun: Boo
 					}
 
 					else -> {
-						val result = statement.accept(this)
-						if (result == null) EngineResult.Clear { "No result." colored ColorPalette.SUBTEXT2 }
-						else EngineResult.Value(result)
+						val result = statement.accept(this, context)
+						if (result == null) EngineResult.Clear(context.build()) { "No result." colored ColorPalette.SUBTEXT2 }
+						else EngineResult.Value(result, context.build())
 					}
 				}
 			}
@@ -123,41 +142,41 @@ class Interpreter(rootEnvSupplier: Supplier<MutableEnvironment>, val dryRun: Boo
 	}
 
 	//region StatementVisitor methods
-	override fun visitExpressionStatement(statement: ExpressionStatement) = evaluate(statement.expression)
+	override fun visitExpressionStatement(statement: ExpressionStatement, context: Context) = evaluate(statement.expression)
 
-	override fun visitFunctionDefinition(statement: FunctionDefinition): MathObject {
+	override fun visitFunctionDefinition(statement: FunctionDefinition, context: Context): MathObject {
 		val allowedLocals = mutableSetOf<String>()
 		statement.parameters.map(FunctionParameter::name).forEach(allowedLocals::add)
 		allowedLocals += statement.name.lexeme
 
-		val validator = SemanticValidator(allowedLocals, rootEnvironment, statement.name.lexeme, statement.parameters.size)
+		val validator = SemanticValidator(allowedLocals, currentEnvironment ?: rootEnvironment, statement.name.lexeme, statement.parameters.size)
 		validator.validate(statement.body)
 
 		val function = UserDefinedFunction(statement)
-		if (!dryRun) rootEnvironment[statement.name.lexeme] = function
+		context += EnvDelta.Set(statement.name.lexeme, function)
+
 		return function // Preview object
 	}
 
-	override fun visitVariableAssignment(statement: VariableAssignment): MathObject {
+	override fun visitVariableAssignment(statement: VariableAssignment, context: Context): MathObject {
 		val value = evaluate(statement.value)
-
-		if (!dryRun) {
-			try {
-				rootEnvironment[statement.name.lexeme] = value
-			} catch (e: EnvironmentError) {
-				throw EvaluationError(statement.name, e.messageText) // Wrap environment errors as evaluation errors to include token
-			}
-		}
-
+		context += EnvDelta.Set(statement.name.lexeme, value)
 		return value // Preview object
 	}
 
-	override fun visitUndefine(statement: Undefine): MathObject? {
-		if (!dryRun) rootEnvironment -= statement.name.lexeme
+	override fun visitUndefine(statement: Undefine, context: Context): MathObject? {
+		val env = requireNotNull(currentEnvironment) { "Interpreter not yet initialized!" }
+		val name = statement.name.lexeme
+		if (name !in env) throw EvaluationError(statement.name) {
+			"Cannot undefine '" colored ColorPalette.ERROR
+			name colored ColorPalette.TEXT
+			"' because it is not defined." colored ColorPalette.ERROR
+		}
+		context += EnvDelta.Remove(name)
 		return null
 	}
 
-	override fun visitQuery(statement: Query): MathObject = evaluate(statement.expression)
+	override fun visitQuery(statement: Query, context: Context): MathObject = evaluate(statement.expression)
 //endregion
 
 //region ExpressionVisitor methods

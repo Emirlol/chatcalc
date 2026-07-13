@@ -10,7 +10,7 @@ import net.minecraft.text.Text
 /**
  * A base class for all exceptions thrown by the language engine.
  */
-abstract class EngineError(val messageText: Text) : RuntimeException(messageText.string)
+sealed class EngineError(val messageText: Text) : RuntimeException(messageText.string)
 
 /**
  * An error that occurs during the Lexing phase.

@@ -13,11 +13,11 @@ import net.minecraft.text.Text
 /**
  * An implementation of [ExpressionVisitor] and [StatementVisitor] that pretty-prints AST nodes to colored [Text].
  */
-object PrettyPrinter : ExpressionVisitor<Text>, StatementVisitor<Text> {
+object PrettyPrinter : ExpressionVisitor<Text>, StatementVisitor<Text, NoContext> {
 	val COMMA = ", ".text(ColorPalette.SUBTEXT2)
 
 	fun print(node: Expression): Text = node.accept(this)
-	fun print(node: Statement): Text = node.accept(this)
+	fun print(node: Statement): Text = node.accept(this, NoContext)
 
 	//region Helper extensions
 	context(builder: TextBuilder)
@@ -45,20 +45,20 @@ object PrettyPrinter : ExpressionVisitor<Text>, StatementVisitor<Text> {
 	//endregion
 
 	//region StatementVisitor methods
-	override fun visitVariableAssignment(statement: VariableAssignment): Text = text {
+	override fun visitVariableAssignment(statement: VariableAssignment, context: NoContext): Text = text {
 		statement.name.fmt()
 		"=".op()
 		+statement.value.accept(this@PrettyPrinter)
 	}
 
-	override fun visitQuery(statement: Query): Text = statement.expression.accept(this)
+	override fun visitQuery(statement: Query, context: NoContext): Text = statement.expression.accept(this)
 
-	override fun visitUndefine(statement: Undefine): Text = text {
+	override fun visitUndefine(statement: Undefine, context: NoContext): Text = text {
 		"Undefine".keyword()
 		statement.name.fmt()
 	}
 
-	override fun visitFunctionDefinition(statement: FunctionDefinition): Text = text {
+	override fun visitFunctionDefinition(statement: FunctionDefinition, context: NoContext): Text = text {
 		statement.name.fmt()
 		"(" colored ColorPalette.SUBTEXT2
 		statement.parameters.asSequence()
@@ -82,7 +82,7 @@ object PrettyPrinter : ExpressionVisitor<Text>, StatementVisitor<Text> {
 		+statement.body.accept(this@PrettyPrinter)
 	}
 
-	override fun visitExpressionStatement(statement: ExpressionStatement): Text = statement.expression.accept(this)
+	override fun visitExpressionStatement(statement: ExpressionStatement, context: NoContext): Text = statement.expression.accept(this)
 	//endregion
 
 	//region ExpressionVisitor methods

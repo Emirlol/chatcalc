@@ -18,13 +18,12 @@ class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInput
 	override fun parseSection(): Section = ChatHelper.getSection(chatField.text, chatField.cursor)
 
 	override fun allowKeyPress(keycode: Int): Boolean = suggester.pendingSuggestions.let { suggestions ->
-		val section = parseSection() ?: return true
 		super.allowKeyPress(keycode)
 				|| suggestions == null
 				|| !suggestions.isDone
 				|| suggestions.isCompletedExceptionally
 				|| !suggestions.getNow(null).isEmpty
-				|| !super.tryParse(section, chatField::setText)
+				|| !super.applyResults(chatField::setText)
 	}
 
 	companion object {
@@ -36,7 +35,7 @@ class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInput
 				if (screen !is ChatScreen) return@register
 				screen as ChatScreenAccessor
 				instance = ChatScreenDisplay(screen.chatField, screen.chatInputSuggestor as ChatInputSuggesterAccessor)
-				ScreenKeyboardEvents.allowKeyPress(screen).register { _, keyInput, ->
+				ScreenKeyboardEvents.allowKeyPress(screen).register { _, keyInput ->
 					instance!!.allowKeyPress(keyInput.keycode)
 				}
 				val consumer = (screen.chatField as TextFieldWidgetAccessor).changedListener

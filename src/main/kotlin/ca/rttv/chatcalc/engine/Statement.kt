@@ -2,27 +2,29 @@ package ca.rttv.chatcalc.engine
 
 import ca.rttv.chatcalc.engine.lexer.Lexer
 import ca.rttv.chatcalc.engine.lexer.Token
-import ca.rttv.chatcalc.engine.types.FunctionParameter
 import ca.rttv.chatcalc.engine.parser.Parser
+import ca.rttv.chatcalc.engine.types.FunctionParameter
 import ca.rttv.chatcalc.engine.types.TypeConstraint
 import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
 
-sealed interface Statement {
-	fun <R> accept(visitor: StatementVisitor<R>): R
+object NoContext
+
+interface StatementVisitor<R, C> {
+	fun visitExpressionStatement(statement: ExpressionStatement, context: C): R
+	fun visitFunctionDefinition(statement: FunctionDefinition, context: C): R
+	fun visitUndefine(statement: Undefine, context: C): R
+	fun visitQuery(statement: Query, context: C): R
+	fun visitVariableAssignment(statement: VariableAssignment, context: C): R
 }
 
-interface StatementVisitor<R> {
-	fun visitExpressionStatement(statement: ExpressionStatement): R
-	fun visitFunctionDefinition(statement: FunctionDefinition): R
-	fun visitUndefine(statement: Undefine): R
-	fun visitQuery(statement: Query): R
-	fun visitVariableAssignment(statement: VariableAssignment): R
+sealed interface Statement {
+	fun <R, C> accept(visitor: StatementVisitor<R, C>, context: C): R
 }
 
 // region  AST Node classes
 data class ExpressionStatement(val expression: Expression) : Statement {
-	override fun <R> accept(visitor: StatementVisitor<R>) = visitor.visitExpressionStatement(this)
+	override fun <R, C> accept(visitor: StatementVisitor<R, C>, context: C) = visitor.visitExpressionStatement(this, context)
 }
 
 data class FunctionDefinition(
@@ -32,7 +34,7 @@ data class FunctionDefinition(
 	val body: Expression,
 	val astSource: String
 ) : Statement {
-	override fun <R> accept(visitor: StatementVisitor<R>) = visitor.visitFunctionDefinition(this)
+	override fun <R, C> accept(visitor: StatementVisitor<R, C>, context: C) = visitor.visitFunctionDefinition(this, context)
 
 	companion object {
 		// Save the source and reparse when decoding. This is simpler than trying to serialize the entire AST and more future-proof.
@@ -60,15 +62,15 @@ data class FunctionDefinition(
 }
 
 data class Undefine(val name: Token) : Statement {
-	override fun <R> accept(visitor: StatementVisitor<R>) = visitor.visitUndefine(this)
+	override fun <R, C> accept(visitor: StatementVisitor<R, C>, context: C) = visitor.visitUndefine(this, context)
 }
 
 data class Query(val expression: Expression) : Statement {
-	override fun <R> accept(visitor: StatementVisitor<R>) = visitor.visitQuery(this)
+	override fun <R, C> accept(visitor: StatementVisitor<R, C>, context: C) = visitor.visitQuery(this, context)
 }
 
 data class VariableAssignment(val name: Token, val value: Expression) : Statement {
-	override fun <R> accept(visitor: StatementVisitor<R>) = visitor.visitVariableAssignment(this)
+	override fun <R, C> accept(visitor: StatementVisitor<R, C>, context: C) = visitor.visitVariableAssignment(this, context)
 }
 //endregion
 
