@@ -11,9 +11,9 @@ interface Environment {
 }
 
 interface MutableEnvironment : Environment {
-    operator fun set(key: String, value: MathObject)
+	operator fun set(key: String, value: MathObject)
 
-    fun remove(key: String)
+	fun remove(key: String)
 
 	operator fun minusAssign(key: String) = remove(key)
 }

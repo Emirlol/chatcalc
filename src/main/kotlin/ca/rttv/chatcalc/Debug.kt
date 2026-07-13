@@ -8,12 +8,24 @@ import me.ancientri.rimelib.util.text.text
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.text.Text
 
-inline val debug get() = FabricLoader.isDevelopmentEnvironment
+inline val debug get() = FabricLoader.isDevelopmentEnvironment || System.getProperty("chatcalc.debug").toBoolean()
 
-fun PlayerEntity.debugSend(text: Text) {
+/**
+ * Sends a debug message to the player.
+ * This is for easier visibility of debug outputs when there's not much output to see, and it's not worthy of putting into a logger as reading from logs is harder.
+ *
+ * Adds a chat prefix to the message.
+ */
+inline fun PlayerEntity.debugSend(text: Text) {
 	if (debug) sendText(chatPrefix.append(text))
 }
 
-fun PlayerEntity.debugSend(builder: TextBuilder.() -> Unit) {
-	if (debug) sendText(chatPrefix.append(text(builder)))
+/**
+ * Sends a debug message to the player.
+ * This is for easier visibility of debug outputs when there's not much output to see, and it's not worthy of putting into a logger as reading from logs is harder.
+ *
+ * Adds a chat prefix to the message.
+ */
+inline fun PlayerEntity.debugSend(builder: TextBuilder.() -> Unit) {
+	debugSend(text(builder))
 }
