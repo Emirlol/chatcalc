@@ -10,7 +10,7 @@ import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents
 import net.minecraft.client.gui.screen.ChatScreen
 import net.minecraft.client.gui.widget.TextFieldWidget
 
-class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInputSuggesterAccessor) : DisplayAbove() {
+class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInputSuggesterAccessor) : Display() {
 	override var x = 0 // This is set by the mixin
 	override val y get() = chatField.y - 4
 	override val centered = false
@@ -18,12 +18,13 @@ class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInput
 	override fun parseSection(): Section = ChatHelper.getSection(chatField.text, chatField.cursor)
 
 	override fun allowKeyPress(keycode: Int): Boolean = suggester.pendingSuggestions.let { suggestions ->
+		val section = parseSection() ?: return true
 		super.allowKeyPress(keycode)
 				|| suggestions == null
 				|| !suggestions.isDone
 				|| suggestions.isCompletedExceptionally
 				|| !suggestions.getNow(null).isEmpty
-				|| !super.tryParse(chatField.text, chatField.cursor, chatField::setText)
+				|| !super.tryParse(section, chatField::setText)
 	}
 
 	companion object {
@@ -41,9 +42,9 @@ class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInput
 				val consumer = (screen.chatField as TextFieldWidgetAccessor).changedListener
 
 				if (consumer == null) {
-					screen.chatField.setChangedListener { instance!!.onKeyPress() }
+					screen.chatField.setChangedListener { instance!!.calculateForRendering() }
 				} else {
-					screen.chatField.setChangedListener(consumer.andThen { instance!!.onKeyPress() })
+					screen.chatField.setChangedListener(consumer.andThen { instance!!.calculateForRendering() })
 				}
 			}
 		}

@@ -14,17 +14,18 @@ val minecraftVersion = libs.versions.minecraft.get() as String
 
 repositories {
 	mavenCentral()
-	exclusiveContent {
-		forRepositories(
-			maven("https://ancientri.me/maven/releases") {
-				name = "AncientRime"
-			}
-		)
-		filter {
-			@Suppress("UnstableApiUsage")
-			includeGroupAndSubgroups("me.ancientri")
-		}
-	}
+//	exclusiveContent {
+//		forRepositories(
+//			maven("https://ancientri.me/maven/releases") {
+//				name = "AncientRime"
+//			}
+//		)
+//		filter {
+//			@Suppress("UnstableApiUsage")
+//			includeGroupAndSubgroups("me.ancientri")
+//		}
+//	}
+	mavenLocal() // domain expired :(
 	exclusiveContent {
 		forRepository {
 			maven("https://maven.terraformersmc.com/releases") { name = "Terraformers" }
@@ -101,7 +102,7 @@ ksp {
 }
 
 kotlin {
-	jvmToolchain(21)
+	jvmToolchain(25)
 	compilerOptions {
 		freeCompilerArgs.add("-Xcontext-parameters")
 		freeCompilerArgs.add("-Xwarning-level=NOTHING_TO_INLINE:disabled")

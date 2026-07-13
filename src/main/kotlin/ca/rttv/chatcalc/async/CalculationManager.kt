@@ -17,7 +17,7 @@ object CalculationManager {
 	fun startWorker() = scope.launch(Dispatchers.Default) {
 		for (task in taskChannel) {
 			try {
-				val result = Interpreter(UserEnvironmentManager::config, dryRun = true).interpret(task.payload)
+				val result = Interpreter(UserEnvironmentManager::config, task.dryRun).interpret(task.payload)
 				task.response.complete(result)
 			} catch (e: Exception) {
 				task.response.completeExceptionally(e)
@@ -25,9 +25,9 @@ object CalculationManager {
 		}
 	}
 
-	fun requestInterpretation(input: List<Statement>): CompletableFuture<EngineResult> {
+	fun requestInterpretation(input: List<Statement>, dryRun: Boolean): CompletableFuture<EngineResult> {
 		val deferred = CompletableFuture<EngineResult>()
-		taskChannel.trySend(InterpreterTask(input, deferred))
+		taskChannel.trySend(InterpreterTask(input, dryRun, deferred))
 		return deferred
 	}
 }

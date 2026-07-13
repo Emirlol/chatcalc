@@ -9,8 +9,14 @@ import java.util.function.Consumer
  * @property input The entire message.
  * @property text The text of this section.
  */
-data class Section(val range: IntRange, val input: String) {
-	val text: String = input.substring(range)
+interface Section {
+	val range: IntRange
+	val input: String
+	val text: String
+		get() = input.substring(range)
+
+	data class Braced(override val range: IntRange, override val input: String) : Section
+	data class SpaceDelimited(override val range: IntRange, override val input: String) : Section
 }
 
 object ChatHelper {
@@ -20,12 +26,12 @@ object ChatHelper {
 	 */
 	fun getSection(input: String, cursor: Int): Section {
 		// Edge-cases
-		if (cursor == 0) { // Well, this branch isn't quite helpful due to minecraft's suggestion provider trying to fill in whe the cursor is at 0, but it's here for completeness.
+		if (cursor == 0) {
 			val rightIndex = input.indexOf('}', cursor)
-			if (rightIndex != -1) return Section(getTrimmedRange(input, 0, rightIndex), input)
+			if (rightIndex != -1) return Section.Braced(getTrimmedRange(input, 0, rightIndex), input)
 		} else if (cursor == input.length) {
 			val leftIndex = input.lastIndexOf('{', cursor - 1)
-			if (leftIndex != -1) return Section(getTrimmedRange(input, (leftIndex + 1), input.length), input)
+			if (leftIndex != -1) return Section.Braced(getTrimmedRange(input, (leftIndex + 1), input.length), input)
 		}
 
 		var start = -1
@@ -45,13 +51,13 @@ object ChatHelper {
 		} while (true)
 
 		return if (start == -1) getSpaceDelimitedSection(input, cursor) // No braces found, fall back to whitespace method
-		else Section(getTrimmedRange(input, start, end), input) // Braces found, return the section within
+		else Section.Braced(getTrimmedRange(input, start, end), input) // Braces found, return the section within
 	}
 
 	fun getSpaceDelimitedSection(input: String, cursor: Int): Section {
 		val start = getStartOfSection(input, cursor)
 		val end = getEndOfSection(input, cursor)
-		return Section(start until end, input)
+		return Section.SpaceDelimited(start until end, input)
 	}
 
 	fun replaceSection(section: Section, replacement: String, setMethod: Consumer<String>): Boolean {
@@ -71,7 +77,7 @@ object ChatHelper {
 	/**
 	 * @return The index + 1 of the first whitespace character before the given index, or 0 if there are no more whitespaces.
 	 */
-	fun getStartOfSection(input: String, cursor: Int): Int {
+	private fun getStartOfSection(input: String, cursor: Int): Int {
 		if (cursor == 0) return 0
 		return input.lastIndexOf(' ', cursor - 1) + 1 // This also handles the -1 return value by making it 0.
 	}
@@ -79,7 +85,7 @@ object ChatHelper {
 	/**
 	 * @return The index of the first whitespace character after the given index, or the end of the string if there are no more whitespaces.
 	 */
-	fun getEndOfSection(input: String, cursor: Int): Int {
+	private fun getEndOfSection(input: String, cursor: Int): Int {
 		if (cursor == input.length) return input.length
 		val index = input.indexOf(' ', cursor)
 		return if (index == -1) input.length else index

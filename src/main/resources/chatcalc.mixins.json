@@ -8,6 +8,7 @@
 		"accessor.ChatScreenAccessor",
 		"accessor.TextFieldWidgetAccessor",
 		"accessor.AbstractSignEditScreenAccessor",
+		"AbstractSignEditScreenMixin",
 		"TextFieldWidgetMixin"
 	],
 	"injectors": {

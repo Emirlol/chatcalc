@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture
 
 data class InterpreterTask(
 	val payload: List<Statement>,
+	val dryRun: Boolean,
 	val response: CompletableFuture<EngineResult>
 )
 

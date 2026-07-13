@@ -26,7 +26,7 @@ import java.util.function.Consumer
 import java.util.regex.Pattern
 
 // Displays the result of the expression the cursor is in as a tooltip above the text field.
-abstract class DisplayAbove() {
+abstract class Display() {
 	protected abstract val x: Int
 	protected abstract val y: Int
 	protected open val centered: Boolean = true
@@ -36,7 +36,12 @@ abstract class DisplayAbove() {
 	 */
 	open fun allowKeyPress(keycode: Int) = keycode != COMPLETION_KEY
 
-	fun onKeyPress() {
+	/**
+	 * Calculates and caches the expression around the cursor.
+	 *
+	 * Does not cause side effects.
+	 */
+	fun calculateForRendering() {
 		val section = parseSection()
 		if (section == null || section.text.isEmpty() || NUMBER_PATTERN.matcher(section.text).matches()) {
 			calculationFuture?.second?.cancel(true)
@@ -54,11 +59,14 @@ abstract class DisplayAbove() {
 			return // Not a valid expression, no need to pass the message
 		}
 
-		calculationFuture = section.text to CalculationManager.requestInterpretation(parsed)
+		calculationFuture = section.text to CalculationManager.requestInterpretation(parsed, true)
 	}
 
 	fun shouldRender(): Boolean = ConfigManager.config.displayAbove
 
+	/**
+	 * Parses the section the cursor is in.
+	 */
 	abstract fun parseSection(): Section?
 
 	@Volatile
@@ -147,9 +155,8 @@ abstract class DisplayAbove() {
 	 * @return Whether the text was parsed successfully.
 	 *         If it was, the [setMethod] will be called somewhere in the process.
 	 */
-	fun tryParse(originalText: String, cursor: Int, setMethod: Consumer<String>): Boolean {
+	fun tryParse(section: Section, setMethod: Consumer<String>): Boolean {
 		// TODO: Maybe refactor this somehow? I'm really unhappy with how much unrelated work is being done here but I can't see an easy way to refactoring without introducing a bunch of fluff code
-		val section = ChatHelper.getSection(originalText, cursor)
 		try {
 			// This re-evals the expression for the side effects, so the cached value can't be used here
 			when (val result = MathEngine.eval(section.text, dryRun = false)) {
