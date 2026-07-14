@@ -1,20 +1,25 @@
 [versions]
 # https://fabricmc.net/develop/
 minecraft = "1.21.10"
-yarnMappings = "1.21.10+build.2"
-fabricLoader = "0.17.3"
-fabricApi = "0.135.0+1.21.10"
+yarnMappings = "1.21.10+build.3"
+fabricLoader = "0.18.3"
+fabricApi = "0.138.4+1.21.10"
 
-fabricLanguageKotlin = "1.13.6+kotlin.2.2.20" # https://github.com/FabricMC/fabric-language-kotlin/releases
+fabricLanguageKotlin = "1.13.8+kotlin.2.3.0" # https://github.com/FabricMC/fabric-language-kotlin/releases
 
-kotlin = "2.2.20" # Match this to the one above
-loom = "1.11-SNAPSHOT" # https://github.com/FabricMC/fabric-loom/releases
-modPublish = "1.0.0" # https://github.com/modmuss50/mod-publish-plugin
-ksp = "2.2.20-2.0.3" #https://github.com/google/ksp/releases
+kotlin = "2.3.0" # Match this to the one above
+loom = "1.14-SNAPSHOT" # https://github.com/FabricMC/fabric-loom/releases
+modPublish = "1.1.0" # https://github.com/modmuss50/mod-publish-plugin
+ksp = "2.3.4" #https://github.com/google/ksp/releases
 
-rimelib = "2.3.2+1.21.10" # https://modrinth.com/mod/rimelib
-config = "1.0.2"
+rimelib = "2.3.4+1.21.10" # https://modrinth.com/mod/rimelib
+config = "1.0.3"
 pods4k = "0.7.0" # https://github.com/daniel-rusu/pods4k/releases
+modMenu = "16.0.1" # https://modrinth.com/mod/modmenu/versions
+
+
+kotest = "6.0.7" # https://kotest.io/
+junit = "6.0.1"
 
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
@@ -26,8 +31,22 @@ rimelib = { module = "me.ancientri:rimelib", version.ref = "rimelib" }
 config-annotation = { module = "me.ancientri.symbols:config-annotation", version.ref = "config" }
 config-processor = { module = "me.ancientri.symbols:config-processor", version.ref = "config" }
 pods4k = { module = "com.danrusu.pods4k:pods4k", version.ref = "pods4k" }
+modMenu = { module = "com.terraformersmc:modmenu", version.ref = "modMenu" }
+
+fabricLoaderJunit = { module = "net.fabricmc:fabric-loader-junit", version.ref = "fabricLoader" }
+#kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" } # Causes issues with fabric stuff
+junitJupiterParams = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
+kotest-property = { module = "io.kotest:kotest-property-jvm", version.ref = "kotest" }
 
 [bundles]
+test = [
+    "fabricLoaderJunit",
+    "junitJupiterParams",
+#    "kotest-runner-junit5",
+    "kotest-assertions-core",
+    "kotest-property"
+]
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

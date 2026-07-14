@@ -1,20 +1,21 @@
 package ca.rttv.chatcalc.display
 
-import ca.rttv.chatcalc.ChatCalc.tryParse
 import ca.rttv.chatcalc.ChatHelper
+import ca.rttv.chatcalc.Section
 import ca.rttv.chatcalc.mixin.accessor.ChatInputSuggesterAccessor
 import ca.rttv.chatcalc.mixin.accessor.ChatScreenAccessor
+import ca.rttv.chatcalc.mixin.accessor.TextFieldWidgetAccessor
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents
 import net.minecraft.client.gui.screen.ChatScreen
 import net.minecraft.client.gui.widget.TextFieldWidget
 
-class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInputSuggesterAccessor) : DisplayAbove() {
+class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInputSuggesterAccessor) : Display() {
 	override var x = 0 // This is set by the mixin
 	override val y get() = chatField.y - 4
 	override val centered = false
 
-	override fun parseWord(): String = ChatHelper.getSection(chatField.text, chatField.cursor)
+	override fun parseSection(): Section = ChatHelper.getSection(chatField.text, chatField.cursor)
 
 	override fun allowKeyPress(keycode: Int): Boolean = suggester.pendingSuggestions.let { suggestions ->
 		super.allowKeyPress(keycode)
@@ -22,7 +23,7 @@ class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInput
 				|| !suggestions.isDone
 				|| suggestions.isCompletedExceptionally
 				|| !suggestions.getNow(null).isEmpty
-				|| !tryParse(chatField.text, chatField.cursor, chatField::setText)
+				|| !super.applyResults(chatField::setText)
 	}
 
 	companion object {
@@ -34,8 +35,15 @@ class ChatScreenDisplay(val chatField: TextFieldWidget, val suggester: ChatInput
 				if (screen !is ChatScreen) return@register
 				screen as ChatScreenAccessor
 				instance = ChatScreenDisplay(screen.chatField, screen.chatInputSuggestor as ChatInputSuggesterAccessor)
-				ScreenKeyboardEvents.allowKeyPress(screen).register { _, keyInput, ->
+				ScreenKeyboardEvents.allowKeyPress(screen).register { _, keyInput ->
 					instance!!.allowKeyPress(keyInput.keycode)
+				}
+				val consumer = (screen.chatField as TextFieldWidgetAccessor).changedListener
+
+				if (consumer == null) {
+					screen.chatField.setChangedListener { instance!!.calculateForRendering() }
+				} else {
+					screen.chatField.setChangedListener(consumer.andThen { instance!!.calculateForRendering() })
 				}
 			}
 		}

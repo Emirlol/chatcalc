@@ -7,7 +7,9 @@
 		"accessor.ChatInputSuggesterAccessor",
 		"accessor.ChatScreenAccessor",
 		"accessor.TextFieldWidgetAccessor",
-		"accessor.AbstractSignEditScreenAccessor"
+		"accessor.AbstractSignEditScreenAccessor",
+		"AbstractSignEditScreenMixin",
+		"TextFieldWidgetMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

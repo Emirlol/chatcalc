@@ -9,14 +9,15 @@ import java.nio.file.Path
 
 private const val CONFIG_FILE_NAME = "chatcalc.json"
 
-object ConfigManager : JsonCodecConfigManager<Configv2, Configv2Builder>() {
+object ConfigManager : JsonCodecConfigManager<Config, ConfigBuilder>() {
 	override val logger: Logger = ChatCalc.loggerFactory.createLogger(this)
 
 	override val configPath: Path = FabricLoader.configDir.resolve(CONFIG_FILE_NAME)
 
-	override val default: Configv2 get() = Configv2()
+	override val default: Config
+		get() = Config()
 
-	override val codec: Codec<Configv2> = Configv2.CODEC
+	override val codec: Codec<Config> = Config.CODEC
 
-	override fun builder(config: Configv2) = Configv2Builder(config)
+	override fun builder(config: Config) = ConfigBuilder(config)
 }
