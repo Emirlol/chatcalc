@@ -5,6 +5,7 @@ import ca.rttv.chatcalc.config.ConfigManager
 import ca.rttv.chatcalc.config.ConfigManager.config
 import ca.rttv.chatcalc.display.ChatScreenDisplay
 import ca.rttv.chatcalc.display.SignScreenDisplay
+import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.datafixers.util.Either
 import debugSend
 import me.ancientri.rimelib.util.LoggerFactory
@@ -14,9 +15,8 @@ import me.ancientri.rimelib.util.player
 import me.ancientri.rimelib.util.text.sendText
 import me.ancientri.rimelib.util.text.text
 import me.ancientri.rimelib.util.text.translatable
-import net.minecraft.client.MinecraftClient
-import net.minecraft.screen.ScreenTexts
-import org.lwjgl.glfw.GLFW
+import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.CommonComponents
 import java.util.function.Consumer
 
 object ChatCalc {
@@ -40,7 +40,7 @@ object ChatCalc {
 	@JvmField
 	val FUNCTION_TABLE: HashSet<Pair<String, Int>> = HashSet()
 
-	const val COMPLETION_KEY = GLFW.GLFW_KEY_TAB
+	const val COMPLETION_KEY = InputConstants.KEY_TAB
 
 	@JvmField
 	val NUMBER = Regex("[-+]?(\\d,?)*(\\.\\d+)?")
@@ -52,7 +52,7 @@ object ChatCalc {
 		"[" colored ColorPalette.SURFACE3
 		"ChatCalc" colored ColorPalette.ACCENT
 		"]" colored ColorPalette.SURFACE1
-		+ScreenTexts.SPACE
+		+CommonComponents.SPACE
 	}
 		get() = field.copy()
 
@@ -63,7 +63,7 @@ object ChatCalc {
 	@JvmStatic
 	fun tryParse(originalText: String, cursor: Int, setMethod: Consumer<String>): Boolean {
 		player?.debugSend("--- Parsing ---".text(ColorPalette.ACCENT))
-		val client = MinecraftClient.getInstance()
+		val client = Minecraft.getInstance()
 		var text = ChatHelper.getSection(originalText, cursor)
 		// region debug stuff
 		player?.debugSend {
@@ -217,7 +217,7 @@ object ChatCalc {
 
 		when {
 			(text == "config?" || text == "cfg?") -> {
-				player?.sendText("chatcalc.config.description".translatable.text(ColorPalette.TEXT))
+				player?.sendSystemMessage("chatcalc.config.description".translatable.text(ColorPalette.TEXT))
 				return false
 			}
 
@@ -235,7 +235,7 @@ object ChatCalc {
 					}
 
 					"Currently defined custom functions are: " colored ColorPalette.ACCENT
-					+ScreenTexts.LINE_BREAK
+					+CommonComponents.NEW_LINE
 					config.functions.asSequence()
 						.map(CustomFunction::toString)
 						.map {
@@ -245,7 +245,7 @@ object ChatCalc {
 								hoverEvent = showText("Click to copy to clipboard".text(ColorPalette.GREEN))
 							}
 						}
-						.interleaveWith(ScreenTexts.LINE_BREAK)
+						.interleaveWith(CommonComponents.NEW_LINE)
 						.forEach(::append)
 				}
 				return false
@@ -260,7 +260,7 @@ object ChatCalc {
 					}
 
 					"Currently defined custom constants are: " colored ColorPalette.ACCENT
-					+ScreenTexts.LINE_BREAK
+					+CommonComponents.NEW_LINE
 					config.constants.asSequence()
 						.map(CustomConstant::toString)
 						.map {
@@ -269,7 +269,7 @@ object ChatCalc {
 								hoverEvent = showText("Click to copy to clipboard".text(ColorPalette.GREEN))
 							}
 						}
-						.interleaveWith(ScreenTexts.LINE_BREAK)
+						.interleaveWith(CommonComponents.NEW_LINE)
 						.forEach(::append)
 				}
 				return false
@@ -291,8 +291,10 @@ object ChatCalc {
 					if (solution == "-0") solution = "0"
 					config.saveToChatHud(originalText)
 					config.saveToClipboard(originalText)
-					return if (add) ChatHelper.addSectionAfterIndex(text, cursor, "=$solution", setMethod)
+
+					return if (add) ChatHelper.addSectionAfterIndex(originalText, cursor, "=$solution", setMethod)
 					else ChatHelper.replaceSection(originalText, cursor, solution, setMethod)
+
 				} catch (_: Exception) {
 					return false
 				}

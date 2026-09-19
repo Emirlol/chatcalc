@@ -1,10 +1,9 @@
 package ca.rttv.chatcalc
 
-import ca.rttv.chatcalc.BuiltinFunctions.Function
 import ca.rttv.chatcalc.config.ConfigManager.config
 import com.google.common.math.DoubleMath
 import it.unimi.dsi.fastutil.doubles.DoubleUnaryOperator
-import net.minecraft.util.math.MathHelper
+import net.minecraft.util.Mth
 import kotlin.math.*
 
 object BuiltinFunctions {
@@ -56,7 +55,7 @@ object BuiltinFunctions {
 		"max" to Function { it.maxOrNull() },
 		"gcf" to Function { it.reduce { a, b -> gcf(a, b) } },
 		"lcm" to Function { it.reduce { a, b -> lcm(a, b) } },
-		"clamp" to Function { if (it.size == 3) MathHelper.clamp(it[0], it[1], it[2]) else null },
+		"clamp" to Function { if (it.size == 3) Mth.clamp(it[0], it[1], it[2]) else null },
 
 		"cmp" to Function { //What is this monstrosity?
 			if (it.size in 2..3) {

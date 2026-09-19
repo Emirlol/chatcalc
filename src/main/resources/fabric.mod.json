@@ -9,7 +9,7 @@
 		"RTTV"
 	],
 	"contributors": [
-		"Rime"
+		"Rime","infinitygames"
 	],
 	"contact": {
 		"sources": "https://github.com/Emirlol/chatcalc",
@@ -34,7 +34,7 @@
 	],
 
 	"depends": {
-		"java": ">=21",
+		"java": ">=25",
 		"minecraft": "${minecraft_version}",
 		"fabric-language-kotlin": ">=${fabric_kotlin_version}",
 		"fabric-api": ">=${fabric_api_version}"

@@ -2,12 +2,11 @@
 	"required": true,
 	"minVersion": "0.8",
 	"package": "ca.rttv.chatcalc.mixin",
-	"compatibilityLevel": "JAVA_21",
+	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"accessor.ChatInputSuggesterAccessor",
+		"accessor.AbstractSignEditScreenAccessor",
 		"accessor.ChatScreenAccessor",
-		"accessor.TextFieldWidgetAccessor",
-		"accessor.AbstractSignEditScreenAccessor"
+		"accessor.TextFieldWidgetAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -4,7 +4,7 @@ import ca.rttv.chatcalc.BuiltinFunctions.factorial
 import ca.rttv.chatcalc.BuiltinFunctions.log
 import ca.rttv.chatcalc.BuiltinFunctions.mod
 import ca.rttv.chatcalc.config.ConfigManager.config
-import net.minecraft.util.math.MathHelper
+import net.minecraft.util.Mth
 import java.nio.charset.StandardCharsets
 import kotlin.math.abs
 import kotlin.math.max
@@ -201,9 +201,9 @@ class NibbleMathEngine : MathEngine {
 					while (((bytes[idx] >= 'a'.code.toByte()) and (bytes[idx] <= 'z'.code.toByte())) or ((bytes[idx] >= 'A'.code.toByte()) and (bytes[idx] <= 'Z'.code.toByte()))) idx++
 					val param = String(bytes, start, idx - start, StandardCharsets.US_ASCII)
 					require(bite('=')) { "Expected starting value for parameter in summation" }
-					val lowerBound = MathHelper.floor(expression())
+					val lowerBound = Mth.floor(expression())
 					require(bite(';')) { "Expected multiple parameters in summation" }
-					val upperBound = MathHelper.floor(expression())
+					val upperBound = Mth.floor(expression())
 					require(bite(';')) { "Expected multiple parameters in summation" }
 					start = idx
 					var parenthesis = 0
@@ -236,9 +236,9 @@ class NibbleMathEngine : MathEngine {
 					while (((bytes[idx] >= 'a'.code.toByte()) and (bytes[idx] <= 'z'.code.toByte())) or ((bytes[idx] >= 'A'.code.toByte()) and (bytes[idx] <= 'Z'.code.toByte()))) idx++
 					val param = String(bytes, start, idx - start, StandardCharsets.US_ASCII)
 					require(bite('=')) { "Expected starting value for parameter in product" }
-					val lowerBound = MathHelper.floor(expression())
+					val lowerBound = Mth.floor(expression())
 					require(bite(';')) { "Expected multiple parameters in product" }
-					val upperBound = MathHelper.floor(expression())
+					val upperBound = Mth.floor(expression())
 					require(bite(';')) { "Expected multiple parameters in product" }
 					start = idx
 					var parenthesis = 0

@@ -4,7 +4,7 @@ import ca.rttv.chatcalc.ChatCalc.chatPrefix
 import me.ancientri.rimelib.util.color.ColorPalette
 import me.ancientri.rimelib.util.player
 import me.ancientri.rimelib.util.text.sendText
-import net.minecraft.util.math.MathHelper
+import net.minecraft.util.Mth
 import kotlin.math.abs
 
 object Testcases {
@@ -96,7 +96,7 @@ object Testcases {
 		"-5%-360" to -5.0,
 		"min(sqrt(37);6" to 6.0,
 		"max(sqrt(37);7" to 7.0,
-		"max(sqrt(2);sqrt(3);sqrt(5);sqrt(7);sqrt(11);sqrt(13);sqrt(17);sqrt(19);sqrt(23);sqrt(29);sqrt(31);sqrt(37);sqrt(41" to MathHelper.sqrt(41f).toDouble(),
+		"max(sqrt(2);sqrt(3);sqrt(5);sqrt(7);sqrt(11);sqrt(13);sqrt(17);sqrt(19);sqrt(23);sqrt(29);sqrt(31);sqrt(37);sqrt(41" to Mth.sqrt(41f).toDouble(),
 		"clamp(-e;-2;4)" to -2.0,
 		"clamp(pi^2;-2;4" to 4.0,
 		"clamp(pi;-2;4)" to Math.PI,

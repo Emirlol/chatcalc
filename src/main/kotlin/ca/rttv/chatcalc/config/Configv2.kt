@@ -7,7 +7,8 @@ import ca.rttv.chatcalc.CustomFunction
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import me.ancientri.symbols.config.ConfigClass
-import net.minecraft.client.MinecraftClient
+import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.Component
 import java.text.DecimalFormat
 
 @ConfigClass
@@ -26,11 +27,11 @@ data class Configv2(
 	inline fun convertToRadians(value: Double) = if (radians) value else Math.toRadians(value)
 
 	inline fun saveToChatHud(input: String?) {
-		if (copyType == CopyType.CHAT_HISTORY) MinecraftClient.getInstance().inGameHud.chatHud.addToMessageHistory(input)
+		if (copyType == CopyType.CHAT_HISTORY) input?.let { Minecraft.getInstance().gui.hud.chat.addClientSystemMessage(Component.literal(it)) }
 	}
 
 	inline fun saveToClipboard(input: String?) {
-		if (copyType == CopyType.CLIPBOARD) MinecraftClient.getInstance().keyboard.clipboard = input
+		if (copyType == CopyType.CLIPBOARD) Minecraft.getInstance().keyboardHandler.clipboard = input.toString()
 	}
 
 	companion object {

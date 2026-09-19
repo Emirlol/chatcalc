@@ -6,7 +6,10 @@ import ca.rttv.chatcalc.config.ConfigManager
 import me.ancientri.rimelib.util.client
 import me.ancientri.rimelib.util.color.ColorPalette
 import me.ancientri.rimelib.util.text.text
-import net.minecraft.client.gui.DrawContext
+import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner
+
 import java.util.*
 
 abstract class DisplayAbove() {
@@ -33,7 +36,7 @@ abstract class DisplayAbove() {
 	// Screens render tooltip at the end of their render pass with `renderWithTooltip`, so any tooltip to be rendered must be added before the screen is rendered.
 	// Therefore, this method should be called before the screen is rendered.
 	@JvmOverloads
-	fun render(drawContext: DrawContext, x: Int = this.x, y: Int = this.y) {
+	fun render(guiGraphics: GuiGraphicsExtractor, x: Int = this.x, y: Int = this.y) {
 		val word = parseWord() ?: return
 		if (ChatCalc.NUMBER.matches(word)) {
 			evaluationCache = null
@@ -51,11 +54,15 @@ abstract class DisplayAbove() {
 				evaluationCache = word to OptionalDouble.of(result)
 			}
 			val text = "=${ConfigManager.config.decimalFormat.format(result)}".text(ColorPalette.TEXT)
-			drawContext.drawTooltip(
-				text,
-				if (centered) x - (5 + client.textRenderer.getWidth(text) / 2)
-				else x,
-				y
+
+			guiGraphics.tooltip(
+				client.font,
+				listOf(ClientTooltipComponent.create(text.visualOrderText)),
+				if (centered) x - (5 + client.font.width(text) / 2) else x,
+				y,
+				DefaultTooltipPositioner.INSTANCE,
+				null,
+				false
 			)
 		}.onFailure { evaluationCache = word to OptionalDouble.empty() }
 	}

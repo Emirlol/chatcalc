@@ -2,32 +2,32 @@ package ca.rttv.chatcalc.mixin.accessor;
 
 import ca.rttv.chatcalc.display.ChatScreenDisplay;
 import com.llamalad7.mixinextras.sugar.Local;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableTextContent;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(TextFieldWidget.class)
-abstract class TextFieldWidgetAccessor extends ClickableWidget {
-	private TextFieldWidgetAccessor(int x, int y, int width, int height, Text message) {
+@Mixin(EditBox.class)
+abstract class TextFieldWidgetAccessor extends AbstractWidget {
+	private TextFieldWidgetAccessor(int x, int y, int width, int height, Component message) {
 		super(x, y, width, height, message);
 		throw new UnsupportedOperationException("Mixin shouldn't be instantiated");
 	}
 
-	// Using a mixin instead of ScreenEvents because the cursor location is a local value, and it's a lot of code to copy over
-	@Inject(method = "renderWidget", at = @At(value = "INVOKE", shift = At.Shift.AFTER, target = "Ljava/lang/String;isEmpty()Z", ordinal = 1))
-	private void chatcalc$renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci, @Local(ordinal = 6) int m) {
-		if (!(getMessage().getContent() instanceof TranslatableTextContent translatable && translatable.getKey().equals("chat.editBox")))
+	@Inject(method = "extractWidgetRenderState", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/components/EditBox;hint:Lnet/minecraft/network/chat/Component;", opcode = Opcodes.GETFIELD))
+	private void chatcalc$renderWidget(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci, @Local(name = "cursorX") int cursorX) {
+		if (!(getMessage().getContents() instanceof TranslatableContents translatable && translatable.getKey().equals("chat.editBox")))
 			return;
 
 		// No need to check the screen as the instance will only be set if the screen is a ChatScreen
 		var instance = ChatScreenDisplay.Companion.getInstance();
 		if (instance == null) return;
-		if (instance.shouldRender()) instance.render(context, m - 8);
+		if (instance.shouldRender()) instance.render(graphics, cursorX - 8);
 	}
 }
